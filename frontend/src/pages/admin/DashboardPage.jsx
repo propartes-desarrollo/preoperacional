@@ -1,0 +1,103 @@
+import { useEffect, useState } from 'react';
+import { Grid, Card, Title, Text, Group, Badge, Table, Loader, Center, Alert } from '@mantine/core';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getDashboard } from '../../api/adminApi.js';
+
+function StatCard({ title, value, color, subtitle }) {
+  return (
+    <Card withBorder p="md">
+      <Text size="xs" c="dimmed" tt="uppercase" fw={700}>{title}</Text>
+      <Text size="2rem" fw={900} c={color || 'blue'}>{value ?? '-'}</Text>
+      {subtitle && <Text size="xs" c="dimmed" mt={4}>{subtitle}</Text>}
+    </Card>
+  );
+}
+
+export function DashboardPage() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getDashboard()
+      .then(setData)
+      .catch((err) => setError(err.response?.data?.error || 'Error al cargar el dashboard.'));
+  }, []);
+
+  if (error) return <Alert color="red">{error}</Alert>;
+  if (!data) return <Center h={200}><Loader /></Center>;
+
+  const missing = data.missing_today || [];
+  const chart = data.inspections_last_7_days || [];
+
+  return (
+    <div>
+      <Title order={3} mb="md">Dashboard</Title>
+      <Text size="sm" c="dimmed" mb="lg">
+        {data.today} &mdash; {data.is_business_day ? 'Dia habil' : 'No habil'}
+        {data.is_photo_day && <Badge ml="xs" color="orange" variant="light">Dia de fotos</Badge>}
+      </Text>
+
+      <Grid mb="md">
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <StatCard title="Inspecciones hoy" value={data.inspections_today} color="blue" />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Colaboradores activos"
+            value={data.active_collaborators_total}
+            subtitle={`${data.active_collaborators_with_inspection_today} registraron hoy`}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <StatCard title="Faltan hoy" value={missing.length} color={missing.length > 0 ? 'orange' : 'green'} />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <StatCard title="Alertas activas" value={data.alerts_active} color={data.alerts_active > 0 ? 'red' : 'green'} />
+        </Grid.Col>
+      </Grid>
+
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 7 }}>
+          <Card withBorder p="md">
+            <Title order={5} mb="md">Inspecciones - ultimos 7 dias</Title>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chart}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="count" stroke="#1c7ed6" strokeWidth={2} dot={{ r: 4 }} name="Inspecciones" />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </Grid.Col>
+
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          <Card withBorder p="md" h="100%">
+            <Title order={5} mb="md">Colaboradores que faltan hoy</Title>
+            {missing.length === 0 ? (
+              <Text size="sm" c="dimmed">Todos registraron inspeccion.</Text>
+            ) : (
+              <Table striped fz="sm" withTableBorder={false}>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Nombre</Table.Th>
+                    <Table.Th>Placa</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {missing.slice(0, 15).map((m, i) => (
+                    <Table.Tr key={i}>
+                      <Table.Td>{m.name}</Table.Td>
+                      <Table.Td><Badge variant="light" size="sm">{m.plate}</Badge></Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            )}
+          </Card>
+        </Grid.Col>
+      </Grid>
+    </div>
+  );
+}

@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react';
+import { Title, Tabs, Table, Badge, ActionIcon, Button, Modal, TextInput, Switch, Group, Stack, Center, Loader, Text } from '@mantine/core';
+import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
+import { getPhotoConfigs, createPhotoConfig, updatePhotoConfig, deletePhotoConfig } from '../../api/adminApi.js';
+import { notifications } from '@mantine/notifications';
+
+const EMPTY_FORM = { label: '', is_required: true, display_order: '' };
+
+export function PhotoConfigsPage() {
+  const [configs, setConfigs] = useState({ auto: [], moto: [] });
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('auto');
+  const [modal, setModal] = useState({ opened: false, config: null });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const data = await getPhotoConfigs();
+      setConfigs(data.photo_configs || { auto: [], moto: [] });
+    } catch {
+      notifications.show({ message: 'Error al cargar configuraciones.', color: 'red' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  function openCreate() {
+    setForm(EMPTY_FORM);
+    setModal({ opened: true, config: null });
+  }
+
+  function openEdit(cfg) {
+    setForm({ label: cfg.label, is_required: cfg.is_required, display_order: cfg.display_order });
+    setModal({ opened: true, config: cfg });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      if (modal.config) {
+        await updatePhotoConfig(modal.config.id, { ...form, display_order: form.display_order ? parseInt(form.display_order) : undefined });
+      } else {
+        await createPhotoConfig({ vehicle_type: activeTab, ...form, display_order: form.display_order ? parseInt(form.display_order) : undefined });
+      }
+      notifications.show({ message: 'Guardado correctamente.', color: 'green' });
+      setModal({ opened: false, config: null });
+      load();
+    } catch (err) {
+      notifications.show({ message: err.response?.data?.error || 'Error.', color: 'red' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(cfg) {
+    if (!window.confirm(`Desactivar "${cfg.label}"?`)) return;
+    try {
+      await deletePhotoConfig(cfg.id);
+      load();
+    } catch (err) {
+      notifications.show({ message: err.response?.data?.error || 'Error.', color: 'red' });
+    }
+  }
+
+  const rows = configs[activeTab] || [];
+
+  return (
+    <div>
+      <Group justify="space-between" mb="md">
+        <Title order={3}>Configuracion de fotos</Title>
+        <Button leftSection={<IconPlus size={14} />} onClick={openCreate}>Nueva config</Button>
+      </Group>
+
+      <Tabs value={activeTab} onChange={setActiveTab} mb="md">
+        <Tabs.List>
+          <Tabs.Tab value="auto">Auto</Tabs.Tab>
+          <Tabs.Tab value="moto">Moto</Tabs.Tab>
+        </Tabs.List>
+      </Tabs>
+
+      {loading ? (
+        <Center h={200}><Loader /></Center>
+      ) : (
+        <>
+          <Table striped withTableBorder fz="sm">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Orden</Table.Th>
+                <Table.Th>Etiqueta</Table.Th>
+                <Table.Th>Requerida</Table.Th>
+                <Table.Th>Estado</Table.Th>
+                <Table.Th></Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.map((cfg) => (
+                <Table.Tr key={cfg.id}>
+                  <Table.Td>{cfg.display_order}</Table.Td>
+                  <Table.Td>{cfg.label}</Table.Td>
+                  <Table.Td><Badge color={cfg.is_required ? 'blue' : 'gray'} variant="light" size="sm">{cfg.is_required ? 'Si' : 'No'}</Badge></Table.Td>
+                  <Table.Td><Badge color={cfg.is_active ? 'green' : 'gray'} variant="light" size="sm">{cfg.is_active ? 'Activa' : 'Inactiva'}</Badge></Table.Td>
+                  <Table.Td>
+                    <Group gap={4}>
+                      <ActionIcon variant="light" size="sm" onClick={() => openEdit(cfg)}><IconEdit size={14} /></ActionIcon>
+                      <ActionIcon variant="light" size="sm" color="red" onClick={() => handleDelete(cfg)}><IconTrash size={14} /></ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+          {rows.length === 0 && <Text c="dimmed" ta="center" py="xl">Sin configuraciones para {activeTab}.</Text>}
+        </>
+      )}
+
+      <Modal opened={modal.opened} onClose={() => setModal({ opened: false, config: null })}
+        title={modal.config ? 'Editar configuracion' : 'Nueva configuracion'} size="sm">
+        <Stack gap="sm">
+          <TextInput label="Etiqueta" required value={form.label}
+            onChange={(e) => setForm({ ...form, label: e.target.value })}
+            styles={{ input: { fontSize: 16 } }}
+          />
+          <TextInput label="Orden de visualizacion" type="number" value={form.display_order}
+            onChange={(e) => setForm({ ...form, display_order: e.target.value })}
+            styles={{ input: { fontSize: 16 } }}
+          />
+          <Switch label="Es requerida" checked={form.is_required}
+            onChange={(e) => setForm({ ...form, is_required: e.currentTarget.checked })}
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setModal({ opened: false, config: null })}>Cancelar</Button>
+            <Button onClick={handleSave} loading={saving}>Guardar</Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </div>
+  );
+}

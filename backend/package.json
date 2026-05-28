@@ -1,0 +1,51 @@
+{
+  "name": "preoperacional-propartes-backend",
+  "version": "1.0.0",
+  "description": "Backend API para el sistema preoperacional de Propartes",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate:up": "node src/migrate-cli.js up",
+    "migrate:down": "node src/migrate-cli.js down",
+    "migrate:create": "node src/migrate-cli.js create",
+    "seed": "node src/seed-cli.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.6",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.1.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "exifr": "^7.1.3",
+    "express": "^5.0.1",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "pg": "^8.11.3",
+    "pino": "^9.14.0",
+    "pino-http": "^10.5.0",
+    "pino-pretty": "^13.1.3",
+    "resend": "^3.4.0",
+    "sharp": "^0.33.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "vitest": "^2.1.9"
+  },
+  "vitest": {
+    "environment": "node",
+    "include": [
+      "src/tests/**/*.test.js"
+    ]
+  }
+}
