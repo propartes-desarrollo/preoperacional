@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import pool from '../../db.js';
 import { todayInBogota, addDaysToDateStr } from '../../utils/dateHelpers.js';
-import { isBusinessDay } from '../../services/businessDayService.js';
-import { getFirstBusinessMondayOfWeek } from '../../services/businessDayService.js';
-import { getAlertThreshold, getInactivityAlerts } from '../../services/alertService.js';
+import { isBusinessDay, getFirstBusinessMondayOfWeek } from '../../services/businessDayService.js';
 
 const router = Router();
 
@@ -23,31 +21,35 @@ router.get('/', async (req, res, next) => {
   try {
     const today = todayInBogota();
 
-    const [isBizDay, photoDayStr, threshold] = await Promise.all([
+    const [isBizDay, photoDayStr] = await Promise.all([
       isBusinessDay(today),
       getFirstBusinessMondayOfWeek(today),
-      getAlertThreshold(),
     ]);
 
     const [
-      { rows: [{ inspections_today }] },
-      { rows: [{ active_total }] },
-      { rows: [{ active_with_inspection }] },
+      { rows: inspFreq },
+      { rows: activeFreq },
       { rows: missing },
       { rows: last7 },
     ] = await Promise.all([
-      pool.query("SELECT COUNT(*)::int AS inspections_today FROM inspections WHERE inspection_date = $1", [today]),
-      pool.query("SELECT COUNT(*)::int AS active_total FROM collaborators WHERE is_active = true"),
       pool.query(
-        `SELECT COUNT(DISTINCT i.collaborator_id)::int AS active_with_inspection
-         FROM inspections i JOIN collaborators c ON c.id = i.collaborator_id
-         WHERE i.inspection_date = $1 AND c.is_active = true`,
+        `SELECT c.inspection_frequency, COUNT(*)::int AS count
+         FROM inspections i
+         JOIN collaborators c ON c.id = i.collaborator_id
+         WHERE i.inspection_date = $1 AND c.is_active = true
+         GROUP BY c.inspection_frequency`,
         [today]
+      ),
+      pool.query(
+        `SELECT inspection_frequency, COUNT(*)::int AS count
+         FROM collaborators WHERE is_active = true
+         GROUP BY inspection_frequency`
       ),
       pool.query(
         `SELECT c.id AS collaborator_id, c.cedula,
                 c.first_name || ' ' || c.last_name AS name,
-                cv.plate
+                cv.plate,
+                c.inspection_frequency
          FROM collaborators c
          JOIN collaborator_vehicles cv ON cv.collaborator_id = c.id
          WHERE c.is_active = true
@@ -66,19 +68,29 @@ router.get('/', async (req, res, next) => {
       ),
     ]);
 
-    // Count active alerts (capped computation for dashboard performance)
-    const alerts = await getInactivityAlerts(threshold);
+    const toFreqMap = (rows) => {
+      const m = { daily: 0, eventual: 0 };
+      for (const r of rows) {
+        if (r.inspection_frequency === 'daily') m.daily = r.count;
+        else m.eventual += r.count;
+      }
+      return m;
+    };
+
+    const inspMap = toFreqMap(inspFreq);
+    const activeMap = toFreqMap(activeFreq);
 
     res.json({
       today,
       is_business_day: isBizDay,
       is_photo_day: today === photoDayStr,
-      inspections_today,
-      active_collaborators_total: active_total,
-      active_collaborators_with_inspection_today: active_with_inspection,
+      inspections_today: inspMap.daily + inspMap.eventual,
+      inspections_today_daily: inspMap.daily,
+      inspections_today_eventual: inspMap.eventual,
+      active_collaborators_total: activeMap.daily + activeMap.eventual,
+      active_collaborators_daily: activeMap.daily,
+      active_collaborators_eventual: activeMap.eventual,
       missing_today: missing,
-      alerts_active: alerts.length,
-      photos_pending_alerts: 0,
       inspections_last_7_days: last7,
     });
   } catch (err) {

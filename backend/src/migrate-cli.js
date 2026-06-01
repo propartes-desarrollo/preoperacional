@@ -22,7 +22,7 @@ if (direction === 'create') {
     filepath,
     `export const up = async (client) => {\n  // await client.query(\`...\`);\n};\n\nexport const down = async (client) => {\n  // await client.query(\`...\`);\n};\n`
   );
-  console.log(`[migrate] Migracion creada: ${filename}`);
+  process.stdout.write(`[migrate] Migracion creada: ${filename}\n`);
   process.exit(0);
 }
 

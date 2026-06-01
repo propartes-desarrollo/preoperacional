@@ -146,13 +146,9 @@ export async function runSeed(pool) {
     }
 
     const settings = [
-      { key: 'whatsapp_alert_threshold', value: '6', description: 'Dias consecutivos sin inspeccion para disparar alerta de WhatsApp' },
-      { key: 'admin_report_email', value: process.env.ADMIN_REPORT_EMAIL || '', description: 'Correo destinatario del reporte diario' },
-      { key: 'whatsapp_admin_phone', value: process.env.WHATSAPP_ADMIN_PHONE || '', description: 'Telefono del administrador para alertas (formato: 573001234567)' },
+      { key: 'whatsapp_alert_threshold', value: '6', description: 'Dias habiles consecutivos sin inspeccion para disparar alerta por correo al administrador' },
       { key: 'photo_retention_days', value: process.env.PHOTO_RETENTION_DAYS || '90', description: 'Dias de retencion de fotos antes de limpieza automatica' },
-      { key: 'report_email_time', value: '08:00', description: 'Hora de envio del reporte diario (formato HH:MM, zona America/Bogota)' },
-      { key: 'whatsapp_check_time', value: '11:00', description: 'Hora de verificacion de alertas WhatsApp (formato HH:MM, zona America/Bogota)' },
-      { key: 'photo_cleanup_time', value: '02:00', description: 'Hora de ejecucion del job de limpieza de fotos (formato HH:MM, zona America/Bogota)' },
+      { key: 'whatsapp_reminder_time', value: '07:55', description: 'Hora de envio del recordatorio WhatsApp a colaboradores (formato HH:MM, zona America/Bogota)' },
     ];
     for (const s of settings) {
       await client.query(

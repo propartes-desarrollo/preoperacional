@@ -1,4 +1,5 @@
 import pool from '../db.js';
+import logger from '../utils/logger.js';
 
 export async function findOrCreateCollaborator(client, { cedula, nombre, apellidos }) {
   const { rows } = await client.query(
@@ -17,7 +18,7 @@ export async function findOrCreateCollaborator(client, { cedula, nombre, apellid
     [cedula, nombre, apellidos]
   );
 
-  console.log(`[collaborator] Nuevo colaborador registrado: cedula=${cedula}`);
+  logger.info({ component: 'collaborator', cedula }, 'Nuevo colaborador registrado.');
   return { collaboratorId: inserted[0].id, created: true };
 }
 
@@ -32,7 +33,7 @@ export async function ensureVehicleAssociation(client, collaboratorId, plate, ve
       'INSERT INTO collaborator_vehicles (collaborator_id, plate, vehicle_type) VALUES ($1, $2, $3)',
       [collaboratorId, plate, vehicleType]
     );
-    console.log(`[collaborator] Nueva asociacion vehiculo: collaborator_id=${collaboratorId}, placa=${plate}`);
+    logger.info({ component: 'collaborator', collaboratorId, plate }, 'Nueva asociacion vehiculo.');
   }
 }
 

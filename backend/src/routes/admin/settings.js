@@ -5,9 +5,10 @@ const router = Router();
 
 const VALID_KEYS = new Set([
   'whatsapp_alert_threshold',
-  'report_email',
-  'whatsapp_admin_phone',
+  'whatsapp_reminder_time',
 ]);
+
+const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
  * @openapi
@@ -71,10 +72,19 @@ router.put('/', async (req, res, next) => {
         errors.push(`Setting invalido: ${JSON.stringify(s)}`);
         continue;
       }
+      if (!VALID_KEYS.has(s.key)) {
+        errors.push(`Clave no permitida: ${s.key}`);
+        continue;
+      }
       if (s.key === 'whatsapp_alert_threshold') {
         const val = parseInt(s.value, 10);
         if (isNaN(val) || val < 1 || val > 365) {
           errors.push('whatsapp_alert_threshold debe ser un entero entre 1 y 365');
+        }
+      }
+      if (s.key === 'whatsapp_reminder_time') {
+        if (!TIME_REGEX.test(s.value)) {
+          errors.push('whatsapp_reminder_time debe tener formato HH:MM (ej: 07:55)');
         }
       }
     }

@@ -10,6 +10,7 @@ import { todayInBogota } from '../utils/dateHelpers.js';
 import { getPhotoStatus } from '../services/photoBlockService.js';
 import { findOrCreateCollaborator, ensureVehicleAssociation } from '../services/collaboratorService.js';
 import { extractExif } from '../services/exifService.js';
+import logger from '../utils/logger.js';
 
 const router = Router();
 
@@ -99,7 +100,7 @@ router.post('/', upload.any(), async (req, res, next) => {
 
     const detectedType = detectVehicleType(plate);
     if (detectedType && detectedType !== vehicle_type) {
-      console.warn(`[inspection] vehicle_type del usuario (${vehicle_type}) no coincide con deteccion (${detectedType}). Placa: ${plate}`);
+      logger.warn({ component: 'inspection', plate, userType: vehicle_type, detectedType }, 'vehicle_type no coincide con deteccion.');
     }
 
     const today = todayInBogota();
@@ -246,7 +247,7 @@ router.post('/', upload.any(), async (req, res, next) => {
 
       await client.query('COMMIT');
 
-      console.log(`[inspection] Registrada: id=${inspectionId}, cedula=${cedula}, placa=${plate}, fotos=${processedPhotos.length}`);
+      logger.info({ component: 'inspection', inspectionId, cedula, plate, photos: processedPhotos.length }, 'Inspeccion registrada.');
 
       res.status(201).json({
         inspection_id: inspectionId,

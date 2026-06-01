@@ -1,6 +1,7 @@
 import { readdir } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import logger from './utils/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
@@ -44,7 +45,7 @@ export async function runMigrations(pool, direction = 'up') {
     if (direction === 'up') {
       const pending = allFiles.filter((m) => !applied.has(m.name));
       if (pending.length === 0) {
-        console.log('[migrate] Migraciones al dia, no hay pendientes.');
+        logger.info({ component: 'migrate' }, 'Migraciones al dia, no hay pendientes.');
         return;
       }
       for (const migration of pending) {
@@ -57,17 +58,17 @@ export async function runMigrations(pool, direction = 'up') {
             [migration.name]
           );
           await client.query('COMMIT');
-          console.log(`[migrate] Aplicada: ${migration.name}`);
+          logger.info({ component: 'migrate' }, `Aplicada: ${migration.name}`);
         } catch (err) {
           await client.query('ROLLBACK');
           throw new Error(`Fallo migracion "${migration.name}": ${err.message}`);
         }
       }
-      console.log(`[migrate] ${pending.length} migracion(es) aplicada(s).`);
+      logger.info({ component: 'migrate' }, `${pending.length} migracion(es) aplicada(s).`);
     } else if (direction === 'down') {
       const appliedFiles = allFiles.filter((m) => applied.has(m.name));
       if (appliedFiles.length === 0) {
-        console.log('[migrate] No hay migraciones aplicadas para revertir.');
+        logger.info({ component: 'migrate' }, 'No hay migraciones aplicadas para revertir.');
         return;
       }
       const last = appliedFiles[appliedFiles.length - 1];
@@ -80,7 +81,7 @@ export async function runMigrations(pool, direction = 'up') {
           [last.name]
         );
         await client.query('COMMIT');
-        console.log(`[migrate] Revertida: ${last.name}`);
+        logger.info({ component: 'migrate' }, `Revertida: ${last.name}`);
       } catch (err) {
         await client.query('ROLLBACK');
         throw new Error(`Fallo reversion "${last.name}": ${err.message}`);

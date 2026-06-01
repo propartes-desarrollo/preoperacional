@@ -66,7 +66,19 @@
       "Bash(wsl -d Ubuntu bash -c \"python3 /tmp/readme_writer.py\")",
       "Bash(wsl -d Ubuntu python3 -)",
       "Bash(wsl -d Ubuntu bash -c \"docker exec backend_node npm test 2>&1 | grep -E 'passed|failed|Tests'\")",
-      "Bash(wsl -d Ubuntu bash -c \"ls /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/utils/offlineQueue.js && ls /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/components/shared/ErrorBoundary.jsx && cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/api/client.js | grep -c interceptors\")"
+      "Bash(wsl -d Ubuntu bash -c \"ls /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/utils/offlineQueue.js && ls /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/components/shared/ErrorBoundary.jsx && cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/frontend/src/api/client.js | grep -c interceptors\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"grep -r 'whatsapp\\\\|WHATSAPP' /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/ --include='*.js' -l\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/jobs/cleanupTokens.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"grep -n 'startCleanupTokensJob' /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/index.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"grep 'WHATSAPP' /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/.env\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/routes/admin/settings.js && echo '---' && cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/seed.js | grep -A 60 'app_settings'\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"docker restart backend_node && sleep 4 && docker logs backend_node --tail 12\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/services/collaboratorService.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/migrate-cli.js && echo '---' && cat /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/migrate.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"grep -n 'console\\\\.' /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/routes/inspections.js | head -10\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"head -5 /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/routes/inspections.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"grep -n '^import' /home/coordinadoria/plataforma_desarrollo/proyectos/preoperacional_propartes/backend/src/routes/inspections.js\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"docker restart backend_node && sleep 5 && docker logs backend_node --tail 15\")"
     ]
   }
 }

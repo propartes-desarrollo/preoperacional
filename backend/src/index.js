@@ -28,6 +28,8 @@ import adminSettingsRouter from './routes/admin/settings.js';
 import adminInspectionsRouter from './routes/admin/inspections.js';
 import adminAlertsRouter from './routes/admin/alerts.js';
 import { startCleanupTokensJob } from './jobs/cleanupTokens.js';
+import { startDailyReminderJob } from './jobs/dailyReminderJob.js';
+import { startInactivityAlertJob } from './jobs/inactivityAlertJob.js';
 import { swaggerServe, swaggerSetup, swaggerSpec } from './swagger.js';
 
 const PORT = process.env.PORT || 3000;
@@ -136,6 +138,8 @@ async function bootstrap() {
   });
 
   startCleanupTokensJob();
+  startDailyReminderJob();
+  startInactivityAlertJob();
 
   app.listen(PORT, () => {
     logger.info({ component: 'backend' }, `Puerto: ${PORT} | Entorno: ${NODE_ENV} | Version: ${process.env.npm_package_version || '1.0.0'}`);

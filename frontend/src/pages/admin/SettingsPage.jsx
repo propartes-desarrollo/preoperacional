@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Title, TextInput, NumberInput, Button, Stack, Paper, Text, Alert, Loader, Center } from '@mantine/core';
+import { Title, TextInput, NumberInput, Button, Stack, Paper, Text, Alert, Loader, Center, Divider } from '@mantine/core';
 import { getSettings, updateSettings } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 
@@ -28,11 +28,17 @@ export function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      const reminderTime = settings.whatsapp_reminder_time || '07:55';
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(reminderTime)) {
+        notifications.show({ message: 'La hora de recordatorio debe tener formato HH:MM (ej: 07:55).', color: 'red' });
+        setSaving(false);
+        return;
+      }
+
       const toUpdate = [
         { key: 'whatsapp_alert_threshold', value: String(settings.whatsapp_alert_threshold || '6') },
-        { key: 'report_email', value: settings.report_email || '' },
-        { key: 'whatsapp_admin_phone', value: settings.whatsapp_admin_phone || '' },
-      ].filter((s) => s.value !== '');
+        { key: 'whatsapp_reminder_time', value: reminderTime },
+      ];
       await updateSettings(toUpdate);
       notifications.show({ message: 'Configuracion guardada.', color: 'green' });
       load();
@@ -52,26 +58,24 @@ export function SettingsPage() {
         <form onSubmit={handleSave}>
           <Stack gap="md">
             <NumberInput
-              label="Umbral de dias para alerta WhatsApp"
-              description="Dias habiles consecutivos sin inspeccion para activar alerta"
+              label="Umbral de dias para alerta de inactividad"
+              description="Dias habiles consecutivos sin inspeccion para enviar alerta por correo al administrador"
               value={parseInt(settings.whatsapp_alert_threshold || '6')}
               onChange={(v) => setSettings({ ...settings, whatsapp_alert_threshold: String(v) })}
               min={1} max={365} required
             />
+            <Divider label="Recordatorio diario WhatsApp" labelPosition="left" />
+
             <TextInput
-              label="Email del administrador para reportes"
-              type="email"
-              value={settings.report_email || ''}
-              onChange={(e) => setSettings({ ...settings, report_email: e.target.value })}
+              label="Hora de envio del recordatorio"
+              description="Hora en que se envia el mensaje diario a colaboradores activos (zona America/Bogota, formato HH:MM)"
+              placeholder="07:55"
+              value={settings.whatsapp_reminder_time || ''}
+              onChange={(e) => setSettings({ ...settings, whatsapp_reminder_time: e.target.value })}
               styles={{ input: { fontSize: 16 } }}
+              maxLength={5}
             />
-            <TextInput
-              label="Telefono WhatsApp del administrador"
-              description="Formato internacional sin + (ej: 573001234567)"
-              value={settings.whatsapp_admin_phone || ''}
-              onChange={(e) => setSettings({ ...settings, whatsapp_admin_phone: e.target.value })}
-              styles={{ input: { fontSize: 16 } }}
-            />
+
             <Button type="submit" loading={saving} w="fit-content">
               Guardar cambios
             </Button>
