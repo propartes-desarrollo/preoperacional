@@ -3,8 +3,8 @@ import {
   Title, Group, Button, TextInput, Select, Table, Badge, ActionIcon,
   Pagination, Text, Center, Loader, Alert, Tooltip, Switch
 } from '@mantine/core';
-import { IconSearch, IconEdit, IconTrash, IconUpload, IconPlus, IconUserOff, IconUserCheck } from '@tabler/icons-react';
-import { getCollaborators, deleteCollaborator, updateCollaborator } from '../../api/adminApi.js';
+import { IconSearch, IconEdit, IconTrash, IconUpload, IconPlus, IconUserOff, IconUserCheck, IconDownload } from '@tabler/icons-react';
+import { getCollaborators, deleteCollaborator, updateCollaborator, exportCollaborators } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 import { CollaboratorFormModal } from './CollaboratorFormModal.jsx';
 import { ImportCsvModal } from './ImportCsvModal.jsx';
@@ -18,6 +18,7 @@ export function CollaboratorsPage() {
   const [page, setPage] = useState(1);
   const [formModal, setFormModal] = useState({ opened: false, collaborator: null });
   const [importModal, setImportModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +47,27 @@ export function CollaboratorsPage() {
     }
   }
 
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (isActiveFilter !== '') params.is_active = isActiveFilter;
+      if (frequencyFilter !== '') params.frequency = frequencyFilter;
+      const blob = await exportCollaborators(params);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `colaboradores_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      notifications.show({ message: 'Error al exportar colaboradores.', color: 'red' });
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function handleDelete(col) {
     if (!window.confirm(`Desactivar a ${col.first_name} ${col.last_name}?`)) return;
     try {
@@ -64,6 +86,9 @@ export function CollaboratorsPage() {
       <Group justify="space-between" mb="md">
         <Title order={3}>Colaboradores</Title>
         <Group gap="xs">
+          <Button leftSection={<IconDownload size={14} />} variant="light" color="green" loading={exporting} onClick={handleExport}>
+            Exportar Excel
+          </Button>
           <Button leftSection={<IconUpload size={14} />} variant="light" onClick={() => setImportModal(true)}>
             Importar CSV
           </Button>

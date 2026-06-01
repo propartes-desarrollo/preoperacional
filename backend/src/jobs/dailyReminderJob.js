@@ -1,16 +1,27 @@
 import cron from 'node-cron';
-import pool from '../db.js';
 import logger from '../utils/logger.js';
 import { formatInTimeZone } from 'date-fns-tz';
 import { todayInBogota, BOGOTA_TZ } from '../utils/dateHelpers.js';
 import { isBusinessDay } from '../services/businessDayService.js';
+import { getSetting } from '../services/alertService.js';
 import { sendDailyReminder } from '../services/whatsappService.js';
+import pool from '../db.js';
+
+const WHATSAPP_SEND_DELAY_MS = 200;
+const REMINDER_TIME_CACHE_TTL_MS = 15 * 60 * 1000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let _reminderTimeCache = null;
+let _reminderTimeFetchedAt = 0;
 
 async function getReminderTime() {
-  const { rows } = await pool.query(
-    "SELECT value FROM app_settings WHERE key = 'whatsapp_reminder_time'"
-  );
-  return rows[0]?.value || '07:55';
+  const now = Date.now();
+  if (_reminderTimeCache && now - _reminderTimeFetchedAt < REMINDER_TIME_CACHE_TTL_MS) {
+    return _reminderTimeCache;
+  }
+  _reminderTimeCache = await getSetting('whatsapp_reminder_time', '07:55');
+  _reminderTimeFetchedAt = now;
+  return _reminderTimeCache;
 }
 
 async function runDailyReminder() {
@@ -46,15 +57,13 @@ async function runDailyReminder() {
     } catch {
       failed++;
     }
-    // Pausa de 200ms entre mensajes para respetar rate limits de Meta
-    await new Promise((r) => setTimeout(r, 200));
+    await sleep(WHATSAPP_SEND_DELAY_MS);
   }
 
   logger.info({ component: 'dailyReminder', sent, failed }, `Recordatorios completados: ${sent} exitosos, ${failed} fallidos.`);
 }
 
 export function startDailyReminderJob() {
-  // Corre cada minuto y verifica si la hora actual coincide con la configurada en app_settings
   cron.schedule('* * * * *', async () => {
     try {
       const configuredTime = await getReminderTime();

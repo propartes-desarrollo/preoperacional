@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { parse } from 'csv-parse';
 import { Readable } from 'stream';
+import ExcelJS from 'exceljs';
 import pool from '../../db.js';
 import { normalizePlate, detectVehicleType } from '../../utils/plateDetector.js';
 
@@ -44,6 +45,98 @@ async function parseCsv(buffer) {
       .on('end', () => resolve(records));
   });
 }
+
+/**
+ * @openapi
+ * /admin/collaborators/export:
+ *   get:
+ *     summary: Exportar colaboradores a Excel
+ *     tags: [admin-collaborators]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Archivo Excel
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get('/export', async (req, res, next) => {
+  try {
+    const conditions = [];
+    const params = [];
+
+    if (req.query.search) {
+      params.push(`%${req.query.search}%`);
+      const p = params.length;
+      conditions.push(`(c.cedula ILIKE $${p} OR c.first_name ILIKE $${p} OR c.last_name ILIKE $${p})`);
+    }
+    if (req.query.is_active !== undefined) {
+      params.push(req.query.is_active === 'true');
+      conditions.push(`c.is_active = $${params.length}`);
+    }
+    if (req.query.frequency) {
+      params.push(req.query.frequency);
+      conditions.push(`c.inspection_frequency = $${params.length}`);
+    }
+
+    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+    const { rows } = await pool.query(
+      `SELECT c.cedula, c.first_name, c.last_name, c.phone,
+              c.inspection_frequency, c.is_active,
+              (
+                SELECT string_agg(cv.plate || ' (' || cv.vehicle_type || ')', ', ' ORDER BY cv.plate)
+                FROM collaborator_vehicles cv WHERE cv.collaborator_id = c.id
+              ) AS vehiculos,
+              (
+                SELECT to_char(MAX(i.inspection_date), 'DD/MM/YYYY')
+                FROM inspections i WHERE i.collaborator_id = c.id
+              ) AS ultima_inspeccion
+       FROM collaborators c ${where}
+       ORDER BY c.last_name, c.first_name`,
+      params
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Colaboradores');
+
+    sheet.columns = [
+      { header: 'Cedula',            key: 'cedula',             width: 16 },
+      { header: 'Nombre',            key: 'first_name',         width: 18 },
+      { header: 'Apellidos',         key: 'last_name',          width: 18 },
+      { header: 'Telefono',          key: 'phone',              width: 16 },
+      { header: 'Frecuencia',        key: 'inspection_frequency', width: 14 },
+      { header: 'Estado',            key: 'is_active',          width: 12 },
+      { header: 'Vehiculos',         key: 'vehiculos',          width: 30 },
+      { header: 'Ultima inspeccion', key: 'ultima_inspeccion',  width: 20 },
+    ];
+    sheet.getRow(1).font = { bold: true };
+
+    for (const row of rows) {
+      sheet.addRow({
+        cedula:               row.cedula,
+        first_name:           row.first_name,
+        last_name:            row.last_name,
+        phone:                row.phone || '',
+        inspection_frequency: row.inspection_frequency === 'daily' ? 'Diario' : 'Eventual',
+        is_active:            row.is_active ? 'Activo' : 'Inactivo',
+        vehiculos:            row.vehiculos || '',
+        ultima_inspeccion:    row.ultima_inspeccion || 'Sin registros',
+      });
+    }
+
+    const today = new Date().toISOString().substring(0, 10);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="colaboradores_${today}.xlsx"`);
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    next(err);
+  }
+});
 
 /**
  * @openapi

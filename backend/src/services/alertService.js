@@ -4,11 +4,16 @@ import { isBusinessDay } from './businessDayService.js';
 import { getFirstBusinessMondayOfWeek, getPreviousBusinessDay } from './businessDayService.js';
 import { getSaturdayOfWeek } from '../utils/dateHelpers.js';
 
-export async function getAlertThreshold() {
+export async function getSetting(key, fallback = '') {
   const { rows } = await pool.query(
-    "SELECT value FROM app_settings WHERE key = 'whatsapp_alert_threshold'"
+    'SELECT value FROM app_settings WHERE key = $1',
+    [key]
   );
-  return parseInt(rows[0]?.value || '6', 10);
+  return rows[0]?.value ?? fallback;
+}
+
+export async function getAlertThreshold() {
+  return parseInt(await getSetting('whatsapp_alert_threshold', '6'), 10);
 }
 
 async function countBusinessDaysSince(lastDateStr, todayStr) {

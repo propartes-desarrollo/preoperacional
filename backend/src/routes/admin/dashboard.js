@@ -68,14 +68,7 @@ router.get('/', async (req, res, next) => {
       ),
     ]);
 
-    const toFreqMap = (rows) => {
-      const m = { daily: 0, eventual: 0 };
-      for (const r of rows) {
-        if (r.inspection_frequency === 'daily') m.daily = r.count;
-        else m.eventual += r.count;
-      }
-      return m;
-    };
+    const toFreqMap = (rows) => Object.fromEntries(rows.map((r) => [r.inspection_frequency, r.count]));
 
     const inspMap = toFreqMap(inspFreq);
     const activeMap = toFreqMap(activeFreq);
@@ -84,12 +77,12 @@ router.get('/', async (req, res, next) => {
       today,
       is_business_day: isBizDay,
       is_photo_day: today === photoDayStr,
-      inspections_today: inspMap.daily + inspMap.eventual,
-      inspections_today_daily: inspMap.daily,
-      inspections_today_eventual: inspMap.eventual,
-      active_collaborators_total: activeMap.daily + activeMap.eventual,
-      active_collaborators_daily: activeMap.daily,
-      active_collaborators_eventual: activeMap.eventual,
+      inspections_today: Object.values(inspMap).reduce((s, n) => s + n, 0),
+      inspections_today_daily: inspMap.daily ?? 0,
+      inspections_today_eventual: inspMap.eventual ?? 0,
+      active_collaborators_total: Object.values(activeMap).reduce((s, n) => s + n, 0),
+      active_collaborators_daily: activeMap.daily ?? 0,
+      active_collaborators_eventual: activeMap.eventual ?? 0,
       missing_today: missing,
       inspections_last_7_days: last7,
     });

@@ -3,12 +3,20 @@ import pool from '../../db.js';
 
 const router = Router();
 
-const VALID_KEYS = new Set([
-  'whatsapp_alert_threshold',
-  'whatsapp_reminder_time',
-]);
-
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const SETTING_VALIDATORS = {
+  whatsapp_alert_threshold: (v) => {
+    const n = parseInt(v, 10);
+    return isNaN(n) || n < 1 || n > 365
+      ? 'whatsapp_alert_threshold debe ser un entero entre 1 y 365'
+      : null;
+  },
+  whatsapp_reminder_time: (v) =>
+    TIME_REGEX.test(v) ? null : 'whatsapp_reminder_time debe tener formato HH:MM (ej: 07:55)',
+};
+
+const VALID_KEYS = new Set(Object.keys(SETTING_VALIDATORS));
 
 /**
  * @openapi
@@ -76,17 +84,8 @@ router.put('/', async (req, res, next) => {
         errors.push(`Clave no permitida: ${s.key}`);
         continue;
       }
-      if (s.key === 'whatsapp_alert_threshold') {
-        const val = parseInt(s.value, 10);
-        if (isNaN(val) || val < 1 || val > 365) {
-          errors.push('whatsapp_alert_threshold debe ser un entero entre 1 y 365');
-        }
-      }
-      if (s.key === 'whatsapp_reminder_time') {
-        if (!TIME_REGEX.test(s.value)) {
-          errors.push('whatsapp_reminder_time debe tener formato HH:MM (ej: 07:55)');
-        }
-      }
+      const msg = SETTING_VALIDATORS[s.key]?.(s.value);
+      if (msg) errors.push(msg);
     }
 
     if (errors.length > 0) {

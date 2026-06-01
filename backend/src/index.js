@@ -30,6 +30,7 @@ import adminAlertsRouter from './routes/admin/alerts.js';
 import { startCleanupTokensJob } from './jobs/cleanupTokens.js';
 import { startDailyReminderJob } from './jobs/dailyReminderJob.js';
 import { startInactivityAlertJob } from './jobs/inactivityAlertJob.js';
+import { warnIfWhatsAppUnconfigured } from './services/whatsappService.js';
 import { swaggerServe, swaggerSetup, swaggerSpec } from './swagger.js';
 
 const PORT = process.env.PORT || 3000;
@@ -137,6 +138,7 @@ async function bootstrap() {
     res.status(status).json({ error: err.message || 'Error interno del servidor', code: status });
   });
 
+  warnIfWhatsAppUnconfigured();
   startCleanupTokensJob();
   startDailyReminderJob();
   startInactivityAlertJob();

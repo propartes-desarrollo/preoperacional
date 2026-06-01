@@ -33,3 +33,8 @@ export function getSaturdayOfWeek(dateStr) {
 export function getYearFromDateStr(dateStr) {
   return parseInt(dateStr.substring(0, 4), 10);
 }
+
+export function formatDateCo(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+}

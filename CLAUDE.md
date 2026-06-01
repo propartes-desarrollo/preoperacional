@@ -204,3 +204,13 @@ Services communicate by container name on an internal Docker network:
 - API documented with Swagger/OpenAPI at `/api/v1/docs`
 - No `node_modules/` in repo; `npm install` runs inside Docker build
 - Binary dependencies (sharp, exiftool) installed in Dockerfile, never host-level
+
+## Code Review Standards
+
+After completing any implementation, review the code for:
+- Functions longer than 30 lines (likely doing too much)
+- Logic duplicated more than twice (extract to utility)
+- Any `any` type usage in TypeScript (replace with real types)
+- Components with more than 3 props that could be grouped into an object
+- Missing error handling on async operations
+- Run /simplify before presenting code to the user.

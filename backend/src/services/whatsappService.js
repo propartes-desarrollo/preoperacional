@@ -5,26 +5,17 @@ const BASE_URL = 'https://graph.facebook.com/v25.0';
 function normalizePhone(phone) {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10 && digits.startsWith('3')) {
-    return `+57${digits}`;
-  }
-  if (digits.length === 12 && digits.startsWith('57')) {
-    return `+${digits}`;
-  }
-  if (digits.length === 13 && digits.startsWith('573')) {
-    return `+${digits}`;
-  }
-  return `+${digits}`;
+  if (digits.length === 10 && digits.startsWith('3')) return `+57${digits}`;
+  if (digits.length === 12 && digits.startsWith('57')) return `+${digits}`;
+  if (digits.length === 13 && digits.startsWith('573')) return `+${digits}`;
+  return null;
 }
 
 async function sendTemplate({ to, templateName, languageCode = 'es_CO', components = [] }) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
-  if (!phoneNumberId || !accessToken) {
-    logger.warn({ component: 'whatsapp' }, 'Variables WHATSAPP_PHONE_NUMBER_ID o WHATSAPP_ACCESS_TOKEN no configuradas.');
-    return null;
-  }
+  if (!phoneNumberId || !accessToken) return null;
 
   const body = {
     messaging_product: 'whatsapp',
@@ -55,10 +46,16 @@ async function sendTemplate({ to, templateName, languageCode = 'es_CO', componen
   return data;
 }
 
+export function warnIfWhatsAppUnconfigured() {
+  if (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_ACCESS_TOKEN) {
+    logger.warn({ component: 'whatsapp' }, 'WHATSAPP_PHONE_NUMBER_ID o WHATSAPP_ACCESS_TOKEN no configurados. Los recordatorios por WhatsApp no se enviaran.');
+  }
+}
+
 export async function sendDailyReminder({ phone, firstName }) {
   const normalized = normalizePhone(phone);
   if (!normalized) {
-    logger.warn({ component: 'whatsapp' }, `Telefono invalido para recordatorio: ${phone}`);
+    logger.warn({ component: 'whatsapp', phone }, 'Telefono con formato no reconocido, se omite el recordatorio.');
     return null;
   }
 

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { formatDateCo } from '../utils/dateHelpers.js';
 
 let resendClient = null;
 
@@ -39,11 +40,6 @@ Este enlace expira en 15 minutos. Si no fuiste tu, ignora este mensaje.
 
 Preoperacional Propartes - Sistema de inspeccion preoperacional de vehiculos`;
 
-function formatDate(dateStr) {
-  const [year, month, day] = dateStr.split('-');
-  return `${day}/${month}/${year}`;
-}
-
 function buildInactivityAlertHtml(alerts, threshold, date) {
   const rows = alerts
     .map(
@@ -53,7 +49,7 @@ function buildInactivityAlertHtml(alerts, threshold, date) {
         <td style="padding: 8px; border-bottom: 1px solid #eee;">${a.cedula}</td>
         <td style="padding: 8px; border-bottom: 1px solid #eee;">${a.plates.join(', ')}</td>
         <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; color: #e03131; font-weight: bold;">${a.business_days_without_inspection}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${a.last_inspection_date ? formatDate(a.last_inspection_date) : 'Sin registros'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">${a.last_inspection_date ? formatDateCo(a.last_inspection_date) : 'Sin registros'}</td>
       </tr>`
     )
     .join('');
@@ -61,7 +57,7 @@ function buildInactivityAlertHtml(alerts, threshold, date) {
   return `
 <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
   <h2 style="color: #1c7ed6;">Preoperacional Propartes</h2>
-  <p>Reporte de inactividad generado el <strong>${formatDate(date)}</strong>.</p>
+  <p>Reporte de inactividad generado el <strong>${formatDateCo(date)}</strong>.</p>
   <p>Los siguientes colaboradores llevan <strong>${threshold} o mas dias habiles</strong> sin registrar inspeccion preoperacional:</p>
   <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
     <thead>
@@ -84,9 +80,9 @@ function buildInactivityAlertHtml(alerts, threshold, date) {
 function buildInactivityAlertText(alerts, threshold, date) {
   const lines = alerts.map(
     (a) =>
-      `- ${a.name} (CC ${a.cedula}) | Placas: ${a.plates.join(', ')} | ${a.business_days_without_inspection} dias | Ultima: ${a.last_inspection_date ? formatDate(a.last_inspection_date) : 'Sin registros'}`
+      `- ${a.name} (CC ${a.cedula}) | Placas: ${a.plates.join(', ')} | ${a.business_days_without_inspection} dias | Ultima: ${a.last_inspection_date ? formatDateCo(a.last_inspection_date) : 'Sin registros'}`
   );
-  return `Preoperacional Propartes - Alerta de inactividad (${formatDate(date)})
+  return `Preoperacional Propartes - Alerta de inactividad (${formatDateCo(date)})
 
 Colaboradores con ${threshold} o mas dias habiles sin inspeccion:
 
@@ -104,7 +100,7 @@ export async function sendInactivityAlertEmail({ alerts, threshold, date, to }) 
   const result = await getClient().emails.send({
     from: process.env.RESEND_FROM_EMAIL,
     to,
-    subject: `Alerta inactividad preoperacional - ${formatDate(date)} (${alerts.length} colaboradores)`,
+    subject: `Alerta inactividad preoperacional - ${formatDateCo(date)} (${alerts.length} colaboradores)`,
     html,
     text,
   });

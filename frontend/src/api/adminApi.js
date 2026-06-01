@@ -14,6 +14,9 @@ export const createCollaborator = (data) => client.post('/admin/collaborators', 
 export const updateCollaborator = (id, data) => client.put(`/admin/collaborators/${id}`, data).then((r) => r.data);
 export const deleteCollaborator = (id, hard = false) =>
   client.delete(`/admin/collaborators/${id}`, { params: hard ? { hard: 'true' } : {} }).then((r) => r.data);
+export const exportCollaborators = (params) =>
+  client.get('/admin/collaborators/export', { params, responseType: 'blob' }).then((r) => r.data);
+
 export const importCsvDryRun = (file) => {
   const fd = new FormData();
   fd.append('file', file);
