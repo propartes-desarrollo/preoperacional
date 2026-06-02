@@ -57,8 +57,8 @@ export function IdentificationPage() {
       sessionStorage.removeItem('offline_sent');
       notifications.show({
         color: 'green',
-        title: 'Inspeccion enviada',
-        message: 'Tu inspeccion guardada sin conexion fue enviada correctamente.',
+        title: 'Inspección enviada',
+        message: 'Tu inspección guardada sin conexión fue enviada correctamente.',
         autoClose: 6000,
       });
     }
@@ -79,7 +79,7 @@ export function IdentificationPage() {
     if (nErr) errs.nombre = nErr;
     if (aErr) errs.apellidos = aErr;
     if (pErr) errs.placa = pErr;
-    if (!vehicle_type) errs.vehicle_type = 'Selecciona el tipo de vehiculo';
+    if (!vehicle_type) errs.vehicle_type = 'Selecciona el tipo de vehículo';
     return errs;
   }, [cedula, nombre, apellidos, placa, vehicle_type]);
 
@@ -103,8 +103,8 @@ export function IdentificationPage() {
       if (statusRes.data.already_submitted) {
         notifications.show({
           color: 'red',
-          title: 'Inspeccion ya registrada',
-          message: 'Ya se registro una inspeccion para esta cedula y placa hoy.',
+          title: 'Inspección ya registrada',
+          message: 'Ya se registró una inspección para esta cédula y placa hoy.',
           autoClose: 6000,
         });
         setLoading(false);
@@ -132,12 +132,17 @@ export function IdentificationPage() {
     <Container size={500} py="xl" px="md">
       <Card shadow="sm" padding="xl" radius="md" withBorder>
         <Stack gap="md">
-          <Box>
+          <Box ta="center">
+            <img
+              src="/logo-propartes.png"
+              alt="Propartes"
+              style={{ maxWidth: 220, width: '100%', marginBottom: 8 }}
+            />
             <Title order={2} ta="center">
-              Preoperacional Propartes
+              Seguridad Vial
             </Title>
             <Text c="dimmed" ta="center" size="sm" mt={4}>
-              Inspeccion preoperacional diaria
+              Inspección preoperacional diaria
             </Text>
           </Box>
 
@@ -162,8 +167,8 @@ export function IdentificationPage() {
           />
 
           <TextInput
-            label="Cedula"
-            placeholder="Numero de cedula"
+            label="Cédula"
+            placeholder="Número de cédula"
             value={cedula}
             inputMode="numeric"
             onChange={(e) => {
@@ -197,12 +202,12 @@ export function IdentificationPage() {
               <Box mt="xs">
                 {detectedType === 'auto' && (
                   <Badge color="blue" size="md">
-                    Vehiculo detectado: AUTO
+                    Vehículo detectado: AUTO
                   </Badge>
                 )}
                 {detectedType === 'moto' && (
                   <Badge color="orange" size="md">
-                    Vehiculo detectado: MOTO
+                    Vehículo detectado: MOTO
                   </Badge>
                 )}
                 {showManualSelector && (
@@ -227,12 +232,12 @@ export function IdentificationPage() {
           {networkError && (
             <Alert
               color="red"
-              title="Sin conexion"
+              title="Sin conexión"
               withCloseButton
               onClose={() => setNetworkError(false)}
             >
               <Stack gap="xs">
-                <Text size="sm">No se pudo conectar al servidor. Verifica tu conexion a internet.</Text>
+                <Text size="sm">No se pudo conectar al servidor. Verifica tu conexión a internet.</Text>
                 <Button
                   size="sm"
                   variant="outline"

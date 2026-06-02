@@ -85,7 +85,7 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
       <form onSubmit={handleSubmit}>
         <Stack gap="sm">
           <TextInput
-            label="Cedula" required value={form.cedula} disabled={isEdit}
+            label="Cédula" required value={form.cedula} disabled={isEdit}
             onChange={(e) => setForm({ ...form, cedula: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />
@@ -99,25 +99,25 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
               styles={{ input: { fontSize: 16 } }}
             />
           </Group>
-          <TextInput label="Telefono" value={form.phone}
+          <TextInput label="Teléfono" value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />
           <Switch label="Activo" checked={form.is_active}
             onChange={(e) => setForm({ ...form, is_active: e.currentTarget.checked })}
           />
-          <Text size="sm" fw={500}>Frecuencia de inspeccion</Text>
+          <Text size="sm" fw={500}>Frecuencia de inspección</Text>
           <SegmentedControl
             fullWidth
             value={form.inspection_frequency}
             onChange={(v) => setForm({ ...form, inspection_frequency: v })}
             data={[
-              { value: 'daily', label: 'Diario (dias habiles)' },
+              { value: 'daily', label: 'Diario (días hábiles)' },
               { value: 'eventual', label: 'Eventual' },
             ]}
           />
 
-          <Divider label="Vehiculos" labelPosition="left" />
+          <Divider label="Vehículos" labelPosition="left" />
 
           {vehicles.map((v, idx) => (
             <Group key={idx} align="flex-end" gap="xs">
@@ -146,7 +146,7 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
             leftSection={<IconPlus size={14} />} variant="light" size="xs"
             onClick={() => setVehicles((p) => [...p, { plate: '', vehicle_type: '' }])}
           >
-            Agregar vehiculo
+            Agregar vehículo
           </Button>
 
           <Group justify="flex-end" mt="sm">

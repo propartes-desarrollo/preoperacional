@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { path: '/admin/collaborators', label: 'Colaboradores', icon: IconUsers },
   { path: '/admin/sections', label: 'Secciones y preguntas', icon: IconList },
   { path: '/admin/photo-configs', label: 'Config. de fotos', icon: IconCamera },
-  { path: '/admin/settings', label: 'Configuracion', icon: IconSettings },
+  { path: '/admin/settings', label: 'Configuración', icon: IconSettings },
 ];
 
 const SUPERADMIN_LINKS = [
@@ -50,7 +50,7 @@ export function AdminLayout() {
           <Group gap="xs">
             <Text size="sm" c="dimmed">{user?.name}</Text>
             <Button variant="light" size="xs" color="red" onClick={logout}>
-              Cerrar sesion
+              Cerrar sesión
             </Button>
           </Group>
         </Group>

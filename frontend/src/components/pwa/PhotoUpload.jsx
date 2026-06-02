@@ -14,7 +14,7 @@ export function PhotoUpload({ config, file, onChange }) {
     if (!selected.type.startsWith('image/')) {
       notifications.show({
         color: 'red',
-        title: 'Archivo no valido',
+        title: 'Archivo no válido',
         message: 'Solo se permiten imagenes.',
       });
       e.target.value = '';
@@ -25,7 +25,7 @@ export function PhotoUpload({ config, file, onChange }) {
       notifications.show({
         color: 'red',
         title: 'Archivo demasiado grande',
-        message: 'El tamano maximo permitido es 10 MB.',
+        message: 'El tamaño máximo permitido es 10 MB.',
       });
       e.target.value = '';
       return;

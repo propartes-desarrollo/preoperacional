@@ -39,8 +39,8 @@ export function DashboardPage() {
     <div>
       <Title order={3} mb="md">Dashboard</Title>
       <Text size="sm" c="dimmed" mb="lg">
-        {data.today} &mdash; {data.is_business_day ? 'Dia habil' : 'No habil'}
-        {data.is_photo_day && <Badge ml="xs" color="orange" variant="light">Dia de fotos</Badge>}
+        {data.today} &mdash; {data.is_business_day ? 'Día hábil' : 'No hábil'}
+        {data.is_photo_day && <Badge ml="xs" color="orange" variant="light">Día de fotos</Badge>}
       </Text>
 
       <Grid mb="md">
@@ -75,7 +75,7 @@ export function DashboardPage() {
       <Grid>
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Card withBorder p="md">
-            <Title order={5} mb="md">Inspecciones - ultimos 7 dias</Title>
+            <Title order={5} mb="md">Inspecciones - últimos 7 días</Title>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={chart}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -92,7 +92,7 @@ export function DashboardPage() {
           <Card withBorder p="md" h="100%">
             <Title order={5} mb="md">Colaboradores que faltan hoy</Title>
             {missing.length === 0 ? (
-              <Text size="sm" c="dimmed">Todos registraron inspeccion.</Text>
+              <Text size="sm" c="dimmed">Todos registraron inspección.</Text>
             ) : (
               <Table striped fz="sm" withTableBorder={false}>
                 <Table.Thead>

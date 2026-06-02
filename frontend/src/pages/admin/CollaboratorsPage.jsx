@@ -126,11 +126,11 @@ export function CollaboratorsPage() {
               <Table.Tr>
                 <Table.Th>Cedula</Table.Th>
                 <Table.Th>Nombre</Table.Th>
-                <Table.Th>Telefono</Table.Th>
+                <Table.Th>Teléfono</Table.Th>
                 <Table.Th>Vehiculos</Table.Th>
                 <Table.Th>Frecuencia</Table.Th>
                 <Table.Th>Estado</Table.Th>
-                <Table.Th>Ultima inspeccion</Table.Th>
+                <Table.Th>Última inspección</Table.Th>
                 <Table.Th></Table.Th>
               </Table.Tr>
             </Table.Thead>

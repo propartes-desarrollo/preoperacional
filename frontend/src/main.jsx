@@ -4,6 +4,7 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 import App from './App.jsx';
 import { ErrorBoundary } from './components/shared/ErrorBoundary.jsx';
 import { getPendingInspections, removeInspection, rebuildFormData } from './utils/offlineQueue.js';

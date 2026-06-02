@@ -77,9 +77,9 @@ export function ImportCsvModal({ opened, onClose, onImported }) {
         {step === 2 && preview && (
           <>
             <Alert color={preview.invalid_rows > 0 ? 'orange' : 'green'}>
-              {preview.total_rows} filas totales &mdash; {preview.valid_rows} validas &mdash; {preview.invalid_rows} con errores
+              {preview.total_rows} filas totales &mdash; {preview.valid_rows} válidas &mdash; {preview.invalid_rows} con errores
             </Alert>
-            <Text size="sm">Se crearan <strong>{preview.will_create}</strong> colaboradores y se actualizaran <strong>{preview.will_update}</strong>.</Text>
+            <Text size="sm">Se crearán <strong>{preview.will_create}</strong> colaboradores y se actualizarán <strong>{preview.will_update}</strong>.</Text>
 
             {preview.errors?.length > 0 && (
               <div>
@@ -110,7 +110,7 @@ export function ImportCsvModal({ opened, onClose, onImported }) {
             <Group justify="flex-end">
               <Button variant="default" onClick={reset}>Volver</Button>
               <Button onClick={handleConfirm} loading={loading} disabled={preview.valid_rows === 0}>
-                Confirmar importacion
+                Confirmar importación
               </Button>
             </Group>
           </>
@@ -118,7 +118,7 @@ export function ImportCsvModal({ opened, onClose, onImported }) {
 
         {step === 3 && result && (
           <>
-            <Alert color="green" title="Importacion completada">
+            <Alert color="green" title="Importación completada">
               Creados: <strong>{result.created}</strong> &mdash; Actualizados: <strong>{result.updated}</strong>
               {result.errors?.length > 0 && ` — ${result.errors.length} con errores`}
             </Alert>

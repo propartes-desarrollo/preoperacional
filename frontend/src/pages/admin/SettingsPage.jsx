@@ -16,7 +16,7 @@ export function SettingsPage() {
       for (const s of (data.settings || [])) map[s.key] = s.value;
       setSettings(map);
     } catch {
-      notifications.show({ message: 'Error al cargar configuracion.', color: 'red' });
+      notifications.show({ message: 'Error al cargar configuración.', color: 'red' });
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export function SettingsPage() {
         { key: 'whatsapp_reminder_time', value: reminderTime },
       ];
       await updateSettings(toUpdate);
-      notifications.show({ message: 'Configuracion guardada.', color: 'green' });
+      notifications.show({ message: 'Configuración guardada.', color: 'green' });
       load();
     } catch (err) {
       notifications.show({ message: err.response?.data?.error || 'Error al guardar.', color: 'red' });
@@ -53,13 +53,13 @@ export function SettingsPage() {
 
   return (
     <div>
-      <Title order={3} mb="md">Configuracion</Title>
+      <Title order={3} mb="md">Configuración</Title>
       <Paper withBorder p="xl" maw={500}>
         <form onSubmit={handleSave}>
           <Stack gap="md">
             <NumberInput
-              label="Umbral de dias para alerta de inactividad"
-              description="Dias habiles consecutivos sin inspeccion para enviar alerta por correo al administrador"
+              label="Umbral de días para alerta de inactividad"
+              description="Días hábiles consecutivos sin inspección para enviar alerta por correo al administrador"
               value={parseInt(settings.whatsapp_alert_threshold || '6')}
               onChange={(v) => setSettings({ ...settings, whatsapp_alert_threshold: String(v) })}
               min={1} max={365} required
@@ -67,8 +67,8 @@ export function SettingsPage() {
             <Divider label="Recordatorio diario WhatsApp" labelPosition="left" />
 
             <TextInput
-              label="Hora de envio del recordatorio"
-              description="Hora en que se envia el mensaje diario a colaboradores activos (zona America/Bogota, formato HH:MM)"
+              label="Hora de envío del recordatorio"
+              description="Hora en que se envía el mensaje diario a colaboradores activos (zona América/Bogotá, formato HH:MM)"
               placeholder="07:55"
               value={settings.whatsapp_reminder_time || ''}
               onChange={(e) => setSettings({ ...settings, whatsapp_reminder_time: e.target.value })}

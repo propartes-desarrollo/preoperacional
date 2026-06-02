@@ -71,7 +71,7 @@ export function PhotoConfigsPage() {
   return (
     <div>
       <Group justify="space-between" mb="md">
-        <Title order={3}>Configuracion de fotos</Title>
+        <Title order={3}>Configuración de fotos</Title>
         <Button leftSection={<IconPlus size={14} />} onClick={openCreate}>Nueva config</Button>
       </Group>
 
@@ -101,7 +101,7 @@ export function PhotoConfigsPage() {
                 <Table.Tr key={cfg.id}>
                   <Table.Td>{cfg.display_order}</Table.Td>
                   <Table.Td>{cfg.label}</Table.Td>
-                  <Table.Td><Badge color={cfg.is_required ? 'blue' : 'gray'} variant="light" size="sm">{cfg.is_required ? 'Si' : 'No'}</Badge></Table.Td>
+                  <Table.Td><Badge color={cfg.is_required ? 'blue' : 'gray'} variant="light" size="sm">{cfg.is_required ? 'Sí' : 'No'}</Badge></Table.Td>
                   <Table.Td><Badge color={cfg.is_active ? 'green' : 'gray'} variant="light" size="sm">{cfg.is_active ? 'Activa' : 'Inactiva'}</Badge></Table.Td>
                   <Table.Td>
                     <Group gap={4}>
@@ -118,13 +118,13 @@ export function PhotoConfigsPage() {
       )}
 
       <Modal opened={modal.opened} onClose={() => setModal({ opened: false, config: null })}
-        title={modal.config ? 'Editar configuracion' : 'Nueva configuracion'} size="sm">
+        title={modal.config ? 'Editar configuración' : 'Nueva configuración'} size="sm">
         <Stack gap="sm">
           <TextInput label="Etiqueta" required value={form.label}
             onChange={(e) => setForm({ ...form, label: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />
-          <TextInput label="Orden de visualizacion" type="number" value={form.display_order}
+          <TextInput label="Orden de visualización" type="number" value={form.display_order}
             onChange={(e) => setForm({ ...form, display_order: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />

@@ -19,11 +19,11 @@ export function PhotosPage() {
   return (
     <Container size={600} py="xl" px="md">
       <Title order={2} mb="xs">
-        Fotografias del vehiculo
+        Fotografías del vehículo
       </Title>
       <Text c="dimmed" mb="md" size="sm">
-        Toma las siguientes fotografias del vehiculo. Asegurate de que sean claras y muestren el
-        vehiculo completo.
+        Toma las siguientes fotografías del vehículo. Asegúrate de que sean claras y muestren el
+        vehículo completo.
       </Text>
 
       <Stack gap="xs" mb="md">
@@ -35,7 +35,7 @@ export function PhotosPage() {
         )}
         {photos_pending && (
           <Alert color="orange" title="Fotos pendientes">
-            Tienes fotografias pendientes desde el inicio de esta semana. Debes subirlas para
+            Tienes fotografías pendientes desde el inicio de esta semana. Debes subirlas para
             continuar.
           </Alert>
         )}

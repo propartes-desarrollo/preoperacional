@@ -11,7 +11,7 @@ export function InspectionDetailDrawer({ opened, onClose, inspection }) {
   const { collaborator, inspection_date, plate, vehicle_type, sections = [], photos = [] } = inspection;
 
   return (
-    <Drawer opened={opened} onClose={onClose} title="Detalle de inspeccion" position="right" size="lg">
+    <Drawer opened={opened} onClose={onClose} title="Detalle de inspección" position="right" size="lg">
       <Stack gap="md">
         <Group>
           <div>

@@ -102,7 +102,7 @@ export function InspectionFormPage() {
 
         {sections.length === 0 ? (
           <Text c="dimmed" ta="center" mt="xl">
-            No hay secciones disponibles para este tipo de vehiculo.
+            No hay secciones disponibles para este tipo de vehículo.
           </Text>
         ) : (
           <Accordion multiple defaultValue={defaultValue} variant="separated">

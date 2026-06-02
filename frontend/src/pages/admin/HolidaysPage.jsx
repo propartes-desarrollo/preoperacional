@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Title, Group, Button, Select, Table, Badge, Text, Modal, TextInput, Stack, Center, Loader, SegmentedControl } from '@mantine/core';
+import { Title, Group, Button, Select, Table, Badge, Text, Modal, TextInput, Stack, Center, Loader, SegmentedControl, ActionIcon } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { getHolidays, getHolidayOverrides, createHolidayOverride, deleteHolidayOverride } from '../../api/adminApi.js';
@@ -83,7 +83,7 @@ export function HolidaysPage() {
         <Group gap="xs">
           <Select data={YEAR_OPTIONS} value={year} onChange={setYear} style={{ width: 100 }} />
           <Button leftSection={<IconPlus size={14} />} onClick={() => setModal(true)}>
-            Agregar override
+            Administrar días festivos
           </Button>
         </Group>
       </Group>
@@ -107,7 +107,7 @@ export function HolidaysPage() {
                   <Table.Td>{h.name}</Table.Td>
                   <Table.Td>
                     <Badge variant="light" color={h.source === 'added' ? 'green' : 'blue'} size="sm">
-                      {h.source === 'added' ? 'Agregado' : h.type || 'Calculado'}
+                      {h.source === 'added' ? 'Manual' : { fixed: 'Fijo', easter: 'Semana Santa', emiliani: 'Ley Emiliani', override: 'Manual' }[h.type] || 'Calculado'}
                     </Badge>
                   </Table.Td>
                 </Table.Tr>
@@ -133,13 +133,13 @@ export function HolidaysPage() {
 
           {yearOverrides.length > 0 && (
             <>
-              <Text fw={600} mb="xs" mt="lg">Overrides activos:</Text>
+              <Text fw={600} mb="xs" mt="lg">Festivos Manuales:</Text>
               <Table striped withTableBorder fz="sm">
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Fecha</Table.Th>
-                    <Table.Th>Accion</Table.Th>
-                    <Table.Th>Descripcion</Table.Th>
+                    <Table.Th>Acción</Table.Th>
+                    <Table.Th>Descripción</Table.Th>
                     <Table.Th></Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -163,7 +163,7 @@ export function HolidaysPage() {
         </>
       )}
 
-      <Modal opened={modal} onClose={() => setModal(false)} title="Nuevo override de festivo" size="sm">
+      <Modal opened={modal} onClose={() => setModal(false)} title="Administrar días festivos" size="sm">
         <Stack gap="sm">
           <DatePickerInput label="Fecha" required value={form.date}
             onChange={(v) => setForm({ ...form, date: v })} clearable
@@ -174,7 +174,7 @@ export function HolidaysPage() {
             onChange={(v) => setForm({ ...form, action: v })}
             fullWidth
           />
-          <TextInput label="Descripcion (opcional)" value={form.description}
+          <TextInput label="Descripción (opcional)" value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />

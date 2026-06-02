@@ -26,12 +26,12 @@ export function LoginPage() {
   return (
     <Container size={400} pt={80}>
       <Card withBorder shadow="sm" p="xl">
-        <Title order={3} mb="xs">Panel de administracion</Title>
+        <Title order={3} mb="xs">Panel de administración</Title>
         <Text size="sm" c="dimmed" mb="lg">Ingresa tu email para recibir un enlace de acceso.</Text>
 
         {sent ? (
           <Alert color="green" title="Enlace enviado">
-            Si el email esta registrado, recibiras un enlace en tu bandeja de entrada. Revisa tambien
+            Si el email está registrado, recibirás un enlace en tu bandeja de entrada. Revisa también
             la carpeta de spam.
           </Alert>
         ) : (

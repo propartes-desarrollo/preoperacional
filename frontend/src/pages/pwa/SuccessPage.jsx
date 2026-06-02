@@ -35,11 +35,11 @@ export function SuccessPage() {
           <CheckIcon />
 
           <Title order={2} ta="center">
-            Inspeccion registrada
+            Inspección registrada
           </Title>
 
           <Text c="dimmed" ta="center" size="sm">
-            La inspeccion preoperacional fue enviada correctamente.
+            La inspección preoperacional fue enviada correctamente.
           </Text>
 
           {data.inspection_id && (
@@ -47,7 +47,7 @@ export function SuccessPage() {
               <Stack gap={6}>
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">
-                    ID de inspeccion
+                    ID de inspección
                   </Text>
                   <Text size="sm" fw={600}>
                     {data.inspection_id}

@@ -4,7 +4,7 @@ export function VehicleTypeSelector({ value, onChange }) {
   return (
     <>
       <Text size="sm" c="dimmed" mb={4}>
-        No se pudo detectar el tipo de vehiculo. Seleccionalo manualmente:
+        No se pudo detectar el tipo de vehículo. Selecciónalo manualmente:
       </Text>
       <SegmentedControl
         fullWidth

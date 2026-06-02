@@ -73,7 +73,6 @@ export function ReviewPage() {
       const msg = err.response?.data?.error;
 
       if (!err.response) {
-        // Error de red: encolar para envio automatico posterior
         try {
           await enqueueInspection(fd);
         } catch {
@@ -82,16 +81,16 @@ export function ReviewPage() {
         sessionStorage.setItem('offline_inspection_queued', 'true');
         notifications.show({
           color: 'orange',
-          title: 'Sin conexion',
-          message: 'Tu inspeccion se enviara automaticamente cuando recuperes la red.',
+          title: 'Sin conexión',
+          message: 'Tu inspección se enviará automáticamente cuando recuperes la red.',
           autoClose: 8000,
         });
         navigate('/success', { state: { offline: true } });
       } else if (status === 409) {
         notifications.show({
           color: 'red',
-          title: 'Inspeccion duplicada',
-          message: 'Ya existe una inspeccion para esta cedula, placa y fecha.',
+          title: 'Inspección duplicada',
+          message: 'Ya existe una inspección para esta cédula, placa y fecha.',
           autoClose: 7000,
         });
         reset();
@@ -99,8 +98,8 @@ export function ReviewPage() {
       } else if (status === 422) {
         notifications.show({
           color: 'red',
-          title: 'Error de validacion',
-          message: msg || 'Verifica los datos e imagenes enviadas.',
+          title: 'Error de validación',
+          message: msg || 'Verifica los datos e imágenes enviadas.',
           autoClose: 7000,
         });
       } else if (status >= 500) {
@@ -108,14 +107,14 @@ export function ReviewPage() {
         notifications.show({
           color: 'red',
           title: 'Error del servidor',
-          message: 'Error al enviar la inspeccion. Puedes reintentar.',
+          message: 'Error al enviar la inspección. Puedes reintentar.',
           autoClose: 6000,
         });
       } else {
         notifications.show({
           color: 'red',
           title: 'Error',
-          message: msg || 'Error al enviar la inspeccion. Intenta nuevamente.',
+          message: msg || 'Error al enviar la inspección. Intenta nuevamente.',
           autoClose: 6000,
         });
       }
@@ -129,7 +128,7 @@ export function ReviewPage() {
       <LoadingOverlay visible={loading} />
 
       <Title order={2} mb="md">
-        Resumen de la inspeccion
+        Resumen de la inspección
       </Title>
 
       <Paper withBorder p="md" mb="md">
@@ -141,7 +140,7 @@ export function ReviewPage() {
             <strong>Nombre:</strong> {nombre} {apellidos}
           </Text>
           <Text size="sm">
-            <strong>Cedula:</strong> {cedula}
+            <strong>Cédula:</strong> {cedula}
           </Text>
           <Text size="sm">
             <strong>Placa:</strong> {placa}
@@ -167,7 +166,7 @@ export function ReviewPage() {
 
         {maloItems.length > 0 && (
           <>
-            <Divider my="xs" label="Items marcados como Malo" />
+            <Divider my="xs" label="Ítems marcados como Malo" />
             <Stack gap="xs">
               {maloItems.map((q) => (
                 <Box key={q.id}>
@@ -188,7 +187,7 @@ export function ReviewPage() {
 
       <Paper withBorder p="md" mb="xl">
         <Title order={5} mb="xs">
-          Fotografias
+          Fotografías
         </Title>
         <Text size="sm">
           {photosUploaded} foto{photosUploaded !== 1 ? 's' : ''} subida{photosUploaded !== 1 ? 's' : ''}
@@ -208,7 +207,7 @@ export function ReviewPage() {
           Editar respuestas
         </Button>
         <Button fullWidth size="lg" onClick={() => handleSubmit()} loading={loading} style={{ minHeight: 48 }}>
-          Enviar inspeccion
+          Enviar inspección
         </Button>
         {canRetry && (
           <Button

@@ -76,7 +76,7 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
     setLoading(true);
     try {
       await updateSection(section.id, sForm);
-      notifications.show({ message: 'Seccion actualizada.', color: 'green' });
+      notifications.show({ message: 'Sección actualizada.', color: 'green' });
       setSModal(false);
       onReload();
     } catch (err) {
@@ -87,7 +87,7 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
   }
 
   async function delSection() {
-    if (!window.confirm(`Desactivar seccion "${section.name}"?`)) return;
+    if (!window.confirm(`Desactivar sección "${section.name}"?`)) return;
     try {
       await deleteSection(section.id);
       onReload();
@@ -144,7 +144,7 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
             onChange={(e) => setQForm({ ...qForm, text: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />
-          <Switch label="Es pregunta 'Otro - Cual'" checked={qForm.is_other}
+          <Switch label="Es pregunta 'Otro - Cuál'" checked={qForm.is_other}
             onChange={(e) => setQForm({ ...qForm, is_other: e.currentTarget.checked })}
           />
           <Group justify="flex-end">
@@ -154,7 +154,7 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
         </Stack>
       </Modal>
 
-      <Modal opened={sModal} onClose={() => setSModal(false)} title="Editar seccion" size="sm">
+      <Modal opened={sModal} onClose={() => setSModal(false)} title="Editar sección" size="sm">
         <Stack gap="sm">
           <TextInput label="Nombre" required value={sForm.name}
             onChange={(e) => setSForm({ ...sForm, name: e.target.value })}
@@ -199,7 +199,7 @@ export function SectionsPage() {
     setSaving(true);
     try {
       await createSection({ vehicle_type: activeTab, name: newForm.name });
-      notifications.show({ message: 'Seccion creada.', color: 'green' });
+      notifications.show({ message: 'Sección creada.', color: 'green' });
       setNewModal(false);
       setNewForm({ name: '' });
       load();
@@ -226,7 +226,7 @@ export function SectionsPage() {
       <Group justify="space-between" mb="md">
         <Title order={3}>Secciones y preguntas</Title>
         <Button leftSection={<IconPlus size={14} />} onClick={() => setNewModal(true)}>
-          Nueva seccion
+          Nueva sección
         </Button>
       </Group>
 
@@ -255,13 +255,13 @@ export function SectionsPage() {
         </div>
       )}
 
-      <Modal opened={newModal} onClose={() => setNewModal(false)} title="Nueva seccion" size="sm">
+      <Modal opened={newModal} onClose={() => setNewModal(false)} title="Nueva sección" size="sm">
         <Stack gap="sm">
-          <TextInput label="Nombre de la seccion" required value={newForm.name}
+          <TextInput label="Nombre de la sección" required value={newForm.name}
             onChange={(e) => setNewForm({ name: e.target.value })}
             styles={{ input: { fontSize: 16 } }}
           />
-          <Text size="sm" c="dimmed">Tipo de vehiculo: <strong>{activeTab}</strong></Text>
+          <Text size="sm" c="dimmed">Tipo de vehículo: <strong>{activeTab}</strong></Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setNewModal(false)}>Cancelar</Button>
             <Button onClick={handleCreateSection} loading={saving}>Crear</Button>
