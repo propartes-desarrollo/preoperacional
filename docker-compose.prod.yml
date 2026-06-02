@@ -1,7 +1,7 @@
 services:
   base_de_datos_postgresql:
     image: postgres:16-alpine
-    container_name: base_de_datos_postgresql
+    container_name: preoperacional_sst_db
     restart: unless-stopped
 
     environment:
@@ -10,30 +10,22 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - preoperacional_sst_postgres_data:/var/lib/postgresql/data
 
     networks:
-      - preoperacional_network
+      preoperacional_sst_red_interna:
+        aliases:
+          - preoperacional_sst_db
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 15s
 
   backend_node:
-    container_name: backend_node
+    container_name: preoperacional_sst_backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -46,77 +38,51 @@ services:
       NODE_ENV: production
 
     volumes:
-      - uploads_data:/app/uploads
+      - ./uploads:/app/uploads
 
     depends_on:
       base_de_datos_postgresql:
         condition: service_healthy
 
     networks:
-      - preoperacional_network
+      - preoperacional_sst_red_interna
 
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/v1/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 15s
 
   frontend_nginx:
-    container_name: frontend_nginx
+    container_name: preoperacional_sst_frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
-
-    env_file:
-      - .env
+    restart: unless-stopped
 
     depends_on:
       - backend_node
 
-    ports:
-      - "80:80"
-
     networks:
-      - preoperacional_network
-
-    restart: unless-stopped
+      - preoperacional_sst_red_interna
+      - proxy_red_compartida
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 15s
 
 networks:
-  preoperacional_network:
-    name: preoperacional_network
+  preoperacional_sst_red_interna:
+    name: preoperacional_sst_red_interna
     driver: bridge
+  proxy_red_compartida:
+    external: true
 
 volumes:
-  postgres_data:
-    name: postgres_data_preoperacional
-  uploads_data:
-    name: uploads_data_preoperacional
+  preoperacional_sst_postgres_data:
+    name: preoperacional_sst_postgres_data
