@@ -8,6 +8,7 @@ import { IconSearch, IconFileExport, IconEye } from '@tabler/icons-react';
 import { getInspections, getInspectionDetail, exportInspections } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 import { InspectionDetailDrawer } from './InspectionDetailDrawer.jsx';
+import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
 
 export function InspectionsPage() {
   const [data, setData] = useState({ data: [], total: 0, page: 1, limit: 50 });
@@ -72,6 +73,15 @@ export function InspectionsPage() {
     }
   }
 
+  const { sorted, sort, onSort } = useSortableData(data.data, {
+    inspection_date: (r) => r.inspection_date,
+    cedula: (r) => r.collaborator?.cedula,
+    name: (r) => `${r.collaborator?.last_name || ''} ${r.collaborator?.first_name || ''}`.trim(),
+    plate: (r) => r.plate,
+    vehicle_type: (r) => r.vehicle_type,
+    malo: (r) => r.answers_summary?.malo || 0,
+    photos_count: (r) => r.photos_count,
+  });
   const totalPages = Math.ceil(data.total / data.limit);
 
   return (
@@ -138,18 +148,18 @@ export function InspectionsPage() {
           <Table striped highlightOnHover withTableBorder fz="sm">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Fecha</Table.Th>
-                <Table.Th>Cedula</Table.Th>
-                <Table.Th>Nombre</Table.Th>
-                <Table.Th>Placa</Table.Th>
-                <Table.Th>Tipo</Table.Th>
-                <Table.Th>Respuestas</Table.Th>
-                <Table.Th>Fotos</Table.Th>
+                <SortableTh label="Fecha" sortKey="inspection_date" sort={sort} onSort={onSort} />
+                <SortableTh label="Cédula" sortKey="cedula" sort={sort} onSort={onSort} />
+                <SortableTh label="Nombre" sortKey="name" sort={sort} onSort={onSort} />
+                <SortableTh label="Placa" sortKey="plate" sort={sort} onSort={onSort} />
+                <SortableTh label="Tipo" sortKey="vehicle_type" sort={sort} onSort={onSort} />
+                <SortableTh label="Respuestas (malo)" sortKey="malo" sort={sort} onSort={onSort} />
+                <SortableTh label="Fotos" sortKey="photos_count" sort={sort} onSort={onSort} />
                 <Table.Th></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {data.data.map((row) => (
+              {sorted.map((row) => (
                 <Table.Tr key={row.id}>
                   <Table.Td>{row.inspection_date}</Table.Td>
                   <Table.Td>{row.collaborator?.cedula}</Table.Td>

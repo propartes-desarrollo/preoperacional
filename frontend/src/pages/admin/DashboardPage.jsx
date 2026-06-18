@@ -98,24 +98,14 @@ export function DashboardPage() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Nombre</Table.Th>
-                    <Table.Th>Placa</Table.Th>
-                    <Table.Th>Frecuencia</Table.Th>
+                    <Table.Th>Cédula</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
                   {missing.slice(0, 15).map((m, i) => (
                     <Table.Tr key={i}>
                       <Table.Td>{m.name}</Table.Td>
-                      <Table.Td><Badge variant="light" size="sm">{m.plate}</Badge></Table.Td>
-                      <Table.Td>
-                        <Badge
-                          variant="dot"
-                          size="sm"
-                          color={m.inspection_frequency === 'daily' ? 'blue' : 'gray'}
-                        >
-                          {m.inspection_frequency === 'daily' ? 'Diario' : 'Eventual'}
-                        </Badge>
-                      </Table.Td>
+                      <Table.Td>{m.cedula}</Table.Td>
                     </Table.Tr>
                   ))}
                 </Table.Tbody>

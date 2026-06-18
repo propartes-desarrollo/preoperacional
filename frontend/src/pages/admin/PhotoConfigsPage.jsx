@@ -3,6 +3,7 @@ import { Title, Tabs, Table, Badge, ActionIcon, Button, Modal, TextInput, Switch
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import { getPhotoConfigs, createPhotoConfig, updatePhotoConfig, deletePhotoConfig } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
+import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
 
 const EMPTY_FORM = { label: '', is_required: true, display_order: '' };
 
@@ -67,6 +68,7 @@ export function PhotoConfigsPage() {
   }
 
   const rows = configs[activeTab] || [];
+  const { sorted, sort, onSort } = useSortableData(rows);
 
   return (
     <div>
@@ -89,15 +91,15 @@ export function PhotoConfigsPage() {
           <Table striped withTableBorder fz="sm">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Orden</Table.Th>
-                <Table.Th>Etiqueta</Table.Th>
-                <Table.Th>Requerida</Table.Th>
-                <Table.Th>Estado</Table.Th>
+                <SortableTh label="Orden" sortKey="display_order" sort={sort} onSort={onSort} />
+                <SortableTh label="Etiqueta" sortKey="label" sort={sort} onSort={onSort} />
+                <SortableTh label="Requerida" sortKey="is_required" sort={sort} onSort={onSort} />
+                <SortableTh label="Estado" sortKey="is_active" sort={sort} onSort={onSort} />
                 <Table.Th></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.map((cfg) => (
+              {sorted.map((cfg) => (
                 <Table.Tr key={cfg.id}>
                   <Table.Td>{cfg.display_order}</Table.Td>
                   <Table.Td>{cfg.label}</Table.Td>

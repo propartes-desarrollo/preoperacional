@@ -16,9 +16,11 @@ import sectionsRouter from './routes/sections.js';
 import photoConfigRouter from './routes/photoConfig.js';
 import inspectionStatusRouter from './routes/inspectionStatus.js';
 import inspectionsRouter from './routes/inspections.js';
+import collaboratorLookupRouter from './routes/collaboratorLookup.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import adminDashboardRouter from './routes/admin/dashboard.js';
 import adminCollaboratorsRouter from './routes/admin/collaborators.js';
+import adminCollaboratorTypesRouter from './routes/admin/collaboratorTypes.js';
 import adminSectionsRouter from './routes/admin/sections.js';
 import adminQuestionsRouter from './routes/admin/questions.js';
 import adminPhotoConfigsRouter from './routes/admin/photoConfigs.js';
@@ -109,6 +111,7 @@ async function bootstrap() {
   app.use('/api/v1/photo-config', photoConfigRouter);
   app.use('/api/v1/inspection-status', inspectionStatusRouter);
   app.use('/api/v1/inspections', inspectionsRouter);
+  app.use('/api/v1/collaborator-lookup', collaboratorLookupRouter);
 
   // Auth routes
   app.use('/api/v1/auth', authRouter);
@@ -116,6 +119,7 @@ async function bootstrap() {
   // Admin routes (all require authentication)
   app.use('/api/v1/admin/dashboard', requireAuth, adminDashboardRouter);
   app.use('/api/v1/admin/collaborators', requireAuth, adminCollaboratorsRouter);
+  app.use('/api/v1/admin/collaborator-types', requireAuth, adminCollaboratorTypesRouter);
   app.use('/api/v1/admin/sections', requireAuth, adminSectionsRouter);
   app.use('/api/v1/admin/questions', requireAuth, adminQuestionsRouter);
   app.use('/api/v1/admin/photo-configs', requireAuth, adminPhotoConfigsRouter);

@@ -48,14 +48,13 @@ router.get('/', async (req, res, next) => {
       pool.query(
         `SELECT c.id AS collaborator_id, c.cedula,
                 c.first_name || ' ' || c.last_name AS name,
-                cv.plate,
                 c.inspection_frequency
          FROM collaborators c
-         JOIN collaborator_vehicles cv ON cv.collaborator_id = c.id
          WHERE c.is_active = true
+           AND c.inspection_frequency = 'daily'
            AND NOT EXISTS (
              SELECT 1 FROM inspections i
-             WHERE i.collaborator_id = c.id AND i.plate = cv.plate AND i.inspection_date = $1
+             WHERE i.collaborator_id = c.id AND i.inspection_date = $1
            )
          ORDER BY c.last_name, c.first_name`,
         [today]

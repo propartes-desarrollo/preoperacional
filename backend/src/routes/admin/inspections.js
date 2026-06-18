@@ -117,12 +117,14 @@ router.get('/export', async (req, res, next) => {
     ];
     sheet.getRow(1).font = { bold: true };
 
+    const RESPUESTA_LABEL = { bueno: 'Bueno', malo: 'Malo', no_aplica: 'No aplica' };
+
     for (const row of answerRows) {
       const photoUrls = (photoMap.get(row.inspection_id) || []).join(';');
       sheet.addRow({
         fecha: row.fecha, cedula: row.cedula, nombre: row.nombre, apellidos: row.apellidos,
         placa: row.placa, tipo: row.tipo, seccion: row.seccion, pregunta: row.pregunta,
-        respuesta: row.respuesta || '', observaciones: row.observaciones || '', foto_urls: photoUrls,
+        respuesta: RESPUESTA_LABEL[row.respuesta] || '', observaciones: row.observaciones || '', foto_urls: photoUrls,
       });
     }
 

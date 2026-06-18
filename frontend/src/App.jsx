@@ -13,6 +13,7 @@ import { VerifyTokenPage } from './pages/admin/VerifyTokenPage.jsx';
 import { AdminLayout } from './pages/admin/AdminLayout.jsx';
 import { DashboardPage } from './pages/admin/DashboardPage.jsx';
 import { CollaboratorsPage } from './pages/admin/CollaboratorsPage.jsx';
+import { CollaboratorTypesPage } from './pages/admin/CollaboratorTypesPage.jsx';
 import { InspectionsPage } from './pages/admin/InspectionsPage.jsx';
 import { SectionsPage } from './pages/admin/SectionsPage.jsx';
 import { PhotoConfigsPage } from './pages/admin/PhotoConfigsPage.jsx';
@@ -48,6 +49,7 @@ export default function App() {
           <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="collaborators" element={<CollaboratorsPage />} />
+            <Route path="collaborator-types" element={<CollaboratorTypesPage />} />
             <Route path="inspections" element={<InspectionsPage />} />
             <Route path="sections" element={<SectionsPage />} />
             <Route path="photo-configs" element={<PhotoConfigsPage />} />

@@ -28,6 +28,12 @@ export const importCsvConfirm = (file) => {
   return client.post('/admin/collaborators/import-csv?confirm=true', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
 };
 
+// Collaborator types
+export const getCollaboratorTypes = () => client.get('/admin/collaborator-types').then((r) => r.data);
+export const createCollaboratorType = (data) => client.post('/admin/collaborator-types', data).then((r) => r.data);
+export const updateCollaboratorType = (id, data) => client.put(`/admin/collaborator-types/${id}`, data).then((r) => r.data);
+export const deleteCollaboratorType = (id) => client.delete(`/admin/collaborator-types/${id}`).then((r) => r.data);
+
 // Sections
 export const getSections = () => client.get('/admin/sections').then((r) => r.data);
 export const createSection = (data) => client.post('/admin/sections', data).then((r) => r.data);

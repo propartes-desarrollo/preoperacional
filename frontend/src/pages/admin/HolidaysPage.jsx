@@ -4,6 +4,9 @@ import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { getHolidays, getHolidayOverrides, createHolidayOverride, deleteHolidayOverride } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
+import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
+
+const TYPE_LABELS = { fixed: 'Fijo', easter: 'Semana Santa', emiliani: 'Ley Emiliani', override: 'Manual' };
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => String(CURRENT_YEAR + i - 1));
@@ -76,6 +79,10 @@ export function HolidaysPage() {
 
   const removedDates = holidays.filter((h) => removeSet.has(h.date));
 
+  const typeLabel = (h) => (h.source === 'added' ? 'Manual' : TYPE_LABELS[h.type] || 'Calculado');
+  const datesSort = useSortableData(allDates, { tipo: typeLabel });
+  const ovSort = useSortableData(yearOverrides);
+
   return (
     <div>
       <Group justify="space-between" mb="md">
@@ -95,19 +102,19 @@ export function HolidaysPage() {
           <Table striped withTableBorder fz="sm" mb="lg">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Fecha</Table.Th>
-                <Table.Th>Nombre</Table.Th>
-                <Table.Th>Tipo</Table.Th>
+                <SortableTh label="Fecha" sortKey="date" sort={datesSort.sort} onSort={datesSort.onSort} />
+                <SortableTh label="Nombre" sortKey="name" sort={datesSort.sort} onSort={datesSort.onSort} />
+                <SortableTh label="Tipo" sortKey="tipo" sort={datesSort.sort} onSort={datesSort.onSort} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {allDates.map((h, i) => (
+              {datesSort.sorted.map((h, i) => (
                 <Table.Tr key={i}>
                   <Table.Td>{h.date}</Table.Td>
                   <Table.Td>{h.name}</Table.Td>
                   <Table.Td>
                     <Badge variant="light" color={h.source === 'added' ? 'green' : 'blue'} size="sm">
-                      {h.source === 'added' ? 'Manual' : { fixed: 'Fijo', easter: 'Semana Santa', emiliani: 'Ley Emiliani', override: 'Manual' }[h.type] || 'Calculado'}
+                      {typeLabel(h)}
                     </Badge>
                   </Table.Td>
                 </Table.Tr>
@@ -137,14 +144,14 @@ export function HolidaysPage() {
               <Table striped withTableBorder fz="sm">
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th>Fecha</Table.Th>
-                    <Table.Th>Acción</Table.Th>
-                    <Table.Th>Descripción</Table.Th>
+                    <SortableTh label="Fecha" sortKey="date" sort={ovSort.sort} onSort={ovSort.onSort} />
+                    <SortableTh label="Acción" sortKey="action" sort={ovSort.sort} onSort={ovSort.onSort} />
+                    <SortableTh label="Descripción" sortKey="description" sort={ovSort.sort} onSort={ovSort.onSort} />
                     <Table.Th></Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {yearOverrides.map((o) => (
+                  {ovSort.sorted.map((o) => (
                     <Table.Tr key={o.id}>
                       <Table.Td>{o.date}</Table.Td>
                       <Table.Td><Badge color={o.action === 'add' ? 'green' : 'red'} variant="light" size="sm">{o.action}</Badge></Table.Td>

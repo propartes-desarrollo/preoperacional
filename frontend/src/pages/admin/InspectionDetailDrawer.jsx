@@ -2,6 +2,7 @@ import { Drawer, Stack, Text, Group, Badge, Title, Divider, Image, SimpleGrid, A
 
 function AnswerBadge({ answer }) {
   if (!answer) return <Badge color="gray" variant="light" size="sm">Sin respuesta</Badge>;
+  if (answer === 'no_aplica') return <Badge color="gray" variant="light" size="sm">No aplica</Badge>;
   return <Badge color={answer === 'malo' ? 'red' : 'green'} variant="light" size="sm">{answer}</Badge>;
 }
 

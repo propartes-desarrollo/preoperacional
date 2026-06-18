@@ -4,6 +4,7 @@ import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 import { useAdmin } from '../../context/AdminContext.jsx';
+import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
 
 const EMPTY_FORM = { email: '', name: '', role: 'admin' };
 const ROLES = [{ value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Superadmin' }];
@@ -58,6 +59,8 @@ export function AdminUsersPage() {
     }
   }
 
+  const { sorted, sort, onSort } = useSortableData(users);
+
   async function handleDelete(u) {
     if (u.id === currentUser?.id) {
       notifications.show({ message: 'No puedes eliminarte a ti mismo.', color: 'orange' });
@@ -85,15 +88,15 @@ export function AdminUsersPage() {
         <Table striped withTableBorder fz="sm">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Email</Table.Th>
-              <Table.Th>Nombre</Table.Th>
-              <Table.Th>Rol</Table.Th>
-              <Table.Th>Estado</Table.Th>
+              <SortableTh label="Email" sortKey="email" sort={sort} onSort={onSort} />
+              <SortableTh label="Nombre" sortKey="name" sort={sort} onSort={onSort} />
+              <SortableTh label="Rol" sortKey="role" sort={sort} onSort={onSort} />
+              <SortableTh label="Estado" sortKey="is_active" sort={sort} onSort={onSort} />
               <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {users.map((u) => (
+            {sorted.map((u) => (
               <Table.Tr key={u.id}>
                 <Table.Td>{u.email}</Table.Td>
                 <Table.Td>{u.name}</Table.Td>

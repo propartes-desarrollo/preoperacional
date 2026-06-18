@@ -192,6 +192,7 @@ router.get('/', async (req, res, next) => {
       pool.query(`SELECT COUNT(*)::int AS total FROM collaborators c ${where}`, params),
       pool.query(
         `SELECT c.id, c.cedula, c.first_name, c.last_name, c.phone, c.is_active, c.inspection_frequency,
+                c.collaborator_type_id, ct.name AS collaborator_type_name, ct.uses_company_vehicles,
                 (
                   SELECT json_agg(json_build_object('id', cv.id, 'plate', cv.plate, 'vehicle_type', cv.vehicle_type))
                   FROM collaborator_vehicles cv WHERE cv.collaborator_id = c.id
@@ -200,7 +201,9 @@ router.get('/', async (req, res, next) => {
                   SELECT to_char(MAX(i.inspection_date), 'YYYY-MM-DD')
                   FROM inspections i WHERE i.collaborator_id = c.id
                 ) AS last_inspection_date
-         FROM collaborators c ${where}
+         FROM collaborators c
+         LEFT JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
+         ${where}
          ORDER BY c.last_name, c.first_name
          LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
         [...params, limit, offset]
@@ -227,7 +230,7 @@ router.get('/', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
   try {
-    const { cedula, first_name, last_name, phone, is_active, inspection_frequency, vehicles } = req.body;
+    const { cedula, first_name, last_name, phone, is_active, inspection_frequency, collaborator_type_id, vehicles } = req.body;
     if (!cedula || !first_name || !last_name) {
       return res.status(400).json({ error: 'cedula, first_name y last_name son requeridos', code: 400 });
     }
@@ -245,9 +248,9 @@ router.post('/', async (req, res, next) => {
       await client.query('BEGIN');
       const freq = ['daily', 'eventual'].includes(inspection_frequency) ? inspection_frequency : 'daily';
       const { rows: [col] } = await client.query(
-        `INSERT INTO collaborators (cedula, first_name, last_name, phone, is_active, inspection_frequency)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [cedula, first_name, last_name, phone || null, is_active ?? true, freq]
+        `INSERT INTO collaborators (cedula, first_name, last_name, phone, is_active, inspection_frequency, collaborator_type_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [cedula, first_name, last_name, phone || null, is_active ?? true, freq, collaborator_type_id || null]
       );
 
       const insertedVehicles = [];
@@ -292,7 +295,7 @@ router.post('/', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
   try {
-    const { first_name, last_name, phone, is_active, inspection_frequency, vehicles } = req.body;
+    const { first_name, last_name, phone, is_active, inspection_frequency, collaborator_type_id, vehicles } = req.body;
     const { rows: [col] } = await pool.query('SELECT id FROM collaborators WHERE id = $1', [req.params.id]);
     if (!col) return res.status(404).json({ error: 'No encontrado', code: 404 });
 
@@ -307,9 +310,10 @@ router.put('/:id', async (req, res, next) => {
           last_name = COALESCE($2, last_name),
           phone = COALESCE($3, phone),
           is_active = COALESCE($4, is_active),
-          inspection_frequency = COALESCE($5, inspection_frequency)
-         WHERE id = $6 RETURNING *`,
-        [first_name, last_name, phone, is_active, freq, req.params.id]
+          inspection_frequency = COALESCE($5, inspection_frequency),
+          collaborator_type_id = COALESCE($6, collaborator_type_id)
+         WHERE id = $7 RETURNING *`,
+        [first_name, last_name, phone, is_active, freq, collaborator_type_id ?? null, req.params.id]
       );
 
       if (Array.isArray(vehicles)) {

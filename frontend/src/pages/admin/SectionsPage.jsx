@@ -4,7 +4,7 @@ import {
   TextInput, Switch, Loader, Center, Tooltip
 } from '@mantine/core';
 import {
-  IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconToggleRight
+  IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconToggleRight, IconToggleLeft
 } from '@tabler/icons-react';
 import {
   getSections, createSection, updateSection, deleteSection, reorderSections,
@@ -12,7 +12,7 @@ import {
 } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 
-function QuestionRow({ q, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast }) {
+function QuestionRow({ q, onEdit, onToggle, onHardDelete, onMoveUp, onMoveDown, isFirst, isLast }) {
   return (
     <Group gap="xs" wrap="nowrap" py={4} px="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
       <Group gap={2}>
@@ -23,7 +23,16 @@ function QuestionRow({ q, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLas
       {q.is_other && <Badge size="xs" color="violet">Otro</Badge>}
       {!q.is_active && <Badge size="xs" color="gray">Inactiva</Badge>}
       <ActionIcon size="xs" variant="light" onClick={onEdit}><IconEdit size={12} /></ActionIcon>
-      <ActionIcon size="xs" variant="light" color="red" onClick={onDelete}><IconTrash size={12} /></ActionIcon>
+      <Tooltip label={q.is_active ? 'Desactivar' : 'Reactivar'}>
+        <ActionIcon size="xs" variant="light" color={q.is_active ? 'orange' : 'green'} onClick={onToggle}>
+          {q.is_active ? <IconToggleRight size={12} /> : <IconToggleLeft size={12} />}
+        </ActionIcon>
+      </Tooltip>
+      {!q.is_active && (
+        <Tooltip label="Eliminar permanentemente">
+          <ActionIcon size="xs" variant="light" color="red" onClick={onHardDelete}><IconTrash size={12} /></ActionIcon>
+        </Tooltip>
+      )}
     </Group>
   );
 }
@@ -53,13 +62,24 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
     }
   }
 
-  async function delQuestion(q) {
-    if (!window.confirm(`Eliminar pregunta: "${q.text}"?`)) return;
+  async function toggleQuestion(q) {
     try {
-      await deleteQuestion(q.id);
+      await updateQuestion(q.id, { is_active: !q.is_active });
+      notifications.show({ message: q.is_active ? 'Pregunta desactivada.' : 'Pregunta reactivada.', color: 'green' });
       onReload();
     } catch (err) {
       notifications.show({ message: err.response?.data?.error || 'Error.', color: 'red' });
+    }
+  }
+
+  async function hardDeleteQuestion(q) {
+    if (!window.confirm(`Eliminar permanentemente la pregunta "${q.text}"? Esta accion no se puede deshacer.`)) return;
+    try {
+      await deleteQuestion(q.id, true);
+      notifications.show({ message: 'Pregunta eliminada permanentemente.', color: 'green' });
+      onReload();
+    } catch (err) {
+      notifications.show({ message: err.response?.data?.error || 'No se pudo eliminar: puede tener respuestas asociadas.', color: 'red' });
     }
   }
 
@@ -123,7 +143,8 @@ function SectionCard({ section, vehicleType, onReload, onMoveUp, onMoveDown, isF
             key={q.id} q={q}
             isFirst={idx === 0} isLast={idx === questions.length - 1}
             onEdit={() => { setQForm({ text: q.text, is_other: q.is_other }); setQModal({ opened: true, question: q }); }}
-            onDelete={() => delQuestion(q)}
+            onToggle={() => toggleQuestion(q)}
+            onHardDelete={() => hardDeleteQuestion(q)}
             onMoveUp={() => moveQuestion(questions, idx, -1)}
             onMoveDown={() => moveQuestion(questions, idx, 1)}
           />

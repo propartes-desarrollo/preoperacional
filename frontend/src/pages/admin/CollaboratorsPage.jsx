@@ -8,6 +8,7 @@ import { getCollaborators, deleteCollaborator, updateCollaborator, exportCollabo
 import { notifications } from '@mantine/notifications';
 import { CollaboratorFormModal } from './CollaboratorFormModal.jsx';
 import { ImportCsvModal } from './ImportCsvModal.jsx';
+import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
 
 export function CollaboratorsPage() {
   const [data, setData] = useState({ data: [], total: 0, page: 1, limit: 50 });
@@ -79,6 +80,7 @@ export function CollaboratorsPage() {
     }
   }
 
+  const { sorted, sort, onSort } = useSortableData(data.data);
   const totalPages = Math.ceil(data.total / data.limit);
 
   return (
@@ -124,21 +126,29 @@ export function CollaboratorsPage() {
           <Table striped highlightOnHover withTableBorder fz="sm">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Cedula</Table.Th>
-                <Table.Th>Nombre</Table.Th>
-                <Table.Th>Teléfono</Table.Th>
-                <Table.Th>Vehiculos</Table.Th>
-                <Table.Th>Frecuencia</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th>Última inspección</Table.Th>
+                <SortableTh label="Cédula" sortKey="cedula" sort={sort} onSort={onSort} />
+                <SortableTh label="Nombres" sortKey="first_name" sort={sort} onSort={onSort} />
+                <SortableTh label="Apellidos" sortKey="last_name" sort={sort} onSort={onSort} />
+                <SortableTh label="Tipo" sortKey="collaborator_type_name" sort={sort} onSort={onSort} />
+                <SortableTh label="Teléfono" sortKey="phone" sort={sort} onSort={onSort} />
+                <Table.Th>Vehículos</Table.Th>
+                <SortableTh label="Frecuencia" sortKey="inspection_frequency" sort={sort} onSort={onSort} />
+                <SortableTh label="Estado" sortKey="is_active" sort={sort} onSort={onSort} />
+                <SortableTh label="Última inspección" sortKey="last_inspection_date" sort={sort} onSort={onSort} />
                 <Table.Th></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {data.data.map((col) => (
+              {sorted.map((col) => (
                 <Table.Tr key={col.id}>
                   <Table.Td>{col.cedula}</Table.Td>
-                  <Table.Td>{col.first_name} {col.last_name}</Table.Td>
+                  <Table.Td>{col.first_name}</Table.Td>
+                  <Table.Td>{col.last_name}</Table.Td>
+                  <Table.Td>
+                    {col.collaborator_type_name
+                      ? <Badge variant="light" color={col.uses_company_vehicles ? 'teal' : 'gray'} size="sm">{col.collaborator_type_name}</Badge>
+                      : <Text size="xs" c="dimmed">-</Text>}
+                  </Table.Td>
                   <Table.Td>{col.phone || '-'}</Table.Td>
                   <Table.Td>
                     <Group gap={4}>

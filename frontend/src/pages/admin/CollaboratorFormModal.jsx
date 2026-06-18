@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, TextInput, Switch, Button, Stack, Group, ActionIcon, Text, Divider, Select, SegmentedControl } from '@mantine/core';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
-import { createCollaborator, updateCollaborator } from '../../api/adminApi.js';
+import { createCollaborator, updateCollaborator, getCollaboratorTypes } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 
 const VEHICLE_TYPES = [
@@ -18,9 +18,17 @@ function detectType(plate) {
 
 export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }) {
   const isEdit = !!collaborator;
-  const [form, setForm] = useState({ cedula: '', first_name: '', last_name: '', phone: '', is_active: true, inspection_frequency: 'daily' });
+  const [form, setForm] = useState({ cedula: '', first_name: '', last_name: '', phone: '', is_active: true, inspection_frequency: 'daily', collaborator_type_id: null });
   const [vehicles, setVehicles] = useState([{ plate: '', vehicle_type: '' }]);
+  const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!opened) return;
+    getCollaboratorTypes()
+      .then((data) => setTypes((data.types || []).filter((t) => t.is_active)))
+      .catch(() => setTypes([]));
+  }, [opened]);
 
   useEffect(() => {
     if (collaborator) {
@@ -31,16 +39,20 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
         phone: collaborator.phone || '',
         is_active: collaborator.is_active ?? true,
         inspection_frequency: collaborator.inspection_frequency || 'daily',
+        collaborator_type_id: collaborator.collaborator_type_id ? String(collaborator.collaborator_type_id) : null,
       });
       setVehicles(collaborator.vehicles?.length > 0
         ? collaborator.vehicles.map((v) => ({ plate: v.plate, vehicle_type: v.vehicle_type || '' }))
         : [{ plate: '', vehicle_type: '' }]
       );
     } else {
-      setForm({ cedula: '', first_name: '', last_name: '', phone: '', is_active: true, inspection_frequency: 'daily' });
+      setForm({ cedula: '', first_name: '', last_name: '', phone: '', is_active: true, inspection_frequency: 'daily', collaborator_type_id: null });
       setVehicles([{ plate: '', vehicle_type: '' }]);
     }
   }, [collaborator, opened]);
+
+  const selectedType = types.find((t) => String(t.id) === form.collaborator_type_id);
+  const usesCompanyVehicles = selectedType?.uses_company_vehicles ?? false;
 
   function updateVehicle(idx, field, value) {
     setVehicles((prev) => {
@@ -60,6 +72,7 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
     try {
       const payload = {
         ...form,
+        collaborator_type_id: form.collaborator_type_id ? parseInt(form.collaborator_type_id, 10) : null,
         vehicles: vehicles.filter((v) => v.plate.trim()).map((v) => ({
           plate: v.plate.trim().toUpperCase(),
           vehicle_type: v.vehicle_type || null,
@@ -106,6 +119,15 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
           <Switch label="Activo" checked={form.is_active}
             onChange={(e) => setForm({ ...form, is_active: e.currentTarget.checked })}
           />
+          <Select
+            label="Tipo de usuario"
+            placeholder="Seleccionar"
+            data={types.map((t) => ({ value: String(t.id), label: t.name }))}
+            value={form.collaborator_type_id}
+            onChange={(v) => setForm({ ...form, collaborator_type_id: v })}
+            clearable
+            styles={{ input: { fontSize: 16 } }}
+          />
           <Text size="sm" fw={500}>Frecuencia de inspección</Text>
           <SegmentedControl
             fullWidth
@@ -117,7 +139,12 @@ export function CollaboratorFormModal({ opened, onClose, collaborator, onSaved }
             ]}
           />
 
-          <Divider label="Vehículos" labelPosition="left" />
+          <Divider label={usesCompanyVehicles ? 'Placas asignadas (vehículos de empresa)' : 'Vehículos'} labelPosition="left" />
+          {usesCompanyVehicles && (
+            <Text size="xs" c="dimmed">
+              Este colaborador eligirá una de estas placas al diligenciar el formulario.
+            </Text>
+          )}
 
           {vehicles.map((v, idx) => (
             <Group key={idx} align="flex-end" gap="xs">

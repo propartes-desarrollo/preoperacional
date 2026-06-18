@@ -31,6 +31,7 @@ export function ReviewPage() {
   const regularQuestions = sections.flatMap((s) => s.questions.filter((q) => !q.is_other));
   const bueno = regularQuestions.filter((q) => answers[q.id]?.answer === 'bueno').length;
   const malo = regularQuestions.filter((q) => answers[q.id]?.answer === 'malo').length;
+  const noAplica = regularQuestions.filter((q) => answers[q.id]?.answer === 'no_aplica').length;
   const maloItems = regularQuestions.filter((q) => answers[q.id]?.answer === 'malo');
   const photosUploaded = Object.keys(photos).length;
   const photosRequired = photo_configs.filter((c) => c.is_required).length;
@@ -162,6 +163,11 @@ export function ReviewPage() {
           <Badge color="red" size="lg">
             Malo: {malo}
           </Badge>
+          {noAplica > 0 && (
+            <Badge color="gray" size="lg">
+              No aplica: {noAplica}
+            </Badge>
+          )}
         </Group>
 
         {maloItems.length > 0 && (

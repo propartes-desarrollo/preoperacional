@@ -3,6 +3,9 @@ import client from './client.js';
 export const getInspectionStatus = (cedula, placa) =>
   client.get('/inspection-status', { params: { cedula, placa } });
 
+export const lookupCollaborator = (cedula) =>
+  client.get('/collaborator-lookup', { params: { cedula } });
+
 export const getSections = (vehicle_type) =>
   client.get('/sections', { params: { vehicle_type } });
 

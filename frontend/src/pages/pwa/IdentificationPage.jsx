@@ -11,10 +11,11 @@ import {
   Badge,
   Box,
   Alert,
+  Select,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useInspection } from '../../context/InspectionContext.jsx';
-import { getInspectionStatus, getSections } from '../../api/publicApi.js';
+import { getInspectionStatus, getSections, lookupCollaborator } from '../../api/publicApi.js';
 import { detectVehicleType, normalizePlate } from '../../utils/plateDetector.js';
 import { validateCedula, validateNombre, validateApellidos, validatePlaca } from '../../utils/validators.js';
 import { VehicleTypeSelector } from './VehicleTypeSelector.jsx';
@@ -41,6 +42,8 @@ export function IdentificationPage() {
   const [cedula, setCedula] = useState(state.cedula || '');
   const [placa, setPlaca] = useState(state.placa || '');
   const [manualVehicleType, setManualVehicleType] = useState(null);
+  const [companyVehicleType, setCompanyVehicleType] = useState(null);
+  const [lookup, setLookup] = useState(null);
   const [currentTime, setCurrentTime] = useState(getBogotaDateTime());
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -64,10 +67,35 @@ export function IdentificationPage() {
     }
   }, []);
 
+  // Lookup del colaborador por cedula (con debounce)
+  useEffect(() => {
+    if (!/^\d{5,15}$/.test(cedula)) {
+      setLookup(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await lookupCollaborator(cedula);
+        if (cancelled) return;
+        const data = res.data;
+        setLookup(data);
+        if (data.exists) {
+          if (data.last_name) setApellidos((prev) => prev || data.last_name);
+          if (data.first_name) setNombre((prev) => prev || data.first_name);
+        }
+      } catch {
+        if (!cancelled) setLookup(null);
+      }
+    }, 500);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [cedula]);
+
   const normalizedPlaca = normalizePlate(placa);
+  const companyMode = !!(lookup?.exists && lookup.uses_company_vehicles && lookup.vehicles?.length > 0);
   const detectedType = normalizedPlaca.length === 6 ? detectVehicleType(normalizedPlaca) : null;
-  const showManualSelector = normalizedPlaca.length === 6 && detectedType === null;
-  const vehicle_type = detectedType || manualVehicleType;
+  const showManualSelector = !companyMode && normalizedPlaca.length === 6 && detectedType === null;
+  const vehicle_type = companyMode ? (companyVehicleType || detectedType) : (detectedType || manualVehicleType);
 
   const validate = useCallback(() => {
     const errs = {};
@@ -147,26 +175,6 @@ export function IdentificationPage() {
           </Box>
 
           <TextInput
-            label="Nombres"
-            placeholder="Ingresa tus nombres"
-            value={nombre}
-            onChange={(e) => { setNombre(e.target.value); setErrors((p) => ({ ...p, nombre: undefined })); }}
-            error={errors.nombre}
-            required
-            styles={{ input: { fontSize: 16, minHeight: 44 } }}
-          />
-
-          <TextInput
-            label="Apellidos"
-            placeholder="Ingresa tus apellidos"
-            value={apellidos}
-            onChange={(e) => { setApellidos(e.target.value); setErrors((p) => ({ ...p, apellidos: undefined })); }}
-            error={errors.apellidos}
-            required
-            styles={{ input: { fontSize: 16, minHeight: 44 } }}
-          />
-
-          <TextInput
             label="Cédula"
             placeholder="Número de cédula"
             value={cedula}
@@ -181,46 +189,87 @@ export function IdentificationPage() {
             styles={{ input: { fontSize: 16, minHeight: 44 } }}
           />
 
-          <Box>
-            <TextInput
-              label="Placa"
-              placeholder="Ej: ABC123"
-              value={placa}
-              maxLength={6}
-              onChange={(e) => {
-                const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                setPlaca(v);
-                setManualVehicleType(null);
+          <TextInput
+            label="Apellidos"
+            placeholder="Ingresa tus apellidos"
+            value={apellidos}
+            onChange={(e) => { setApellidos(e.target.value.toUpperCase()); setErrors((p) => ({ ...p, apellidos: undefined })); }}
+            error={errors.apellidos}
+            required
+            styles={{ input: { fontSize: 16, minHeight: 44, textTransform: 'uppercase' } }}
+          />
+
+          <TextInput
+            label="Nombres"
+            placeholder="Ingresa tus nombres"
+            value={nombre}
+            onChange={(e) => { setNombre(e.target.value.toUpperCase()); setErrors((p) => ({ ...p, nombre: undefined })); }}
+            error={errors.nombre}
+            required
+            styles={{ input: { fontSize: 16, minHeight: 44, textTransform: 'uppercase' } }}
+          />
+
+          {companyMode ? (
+            <Select
+              label="Placa del día"
+              placeholder="Selecciona la placa que conduces hoy"
+              data={lookup.vehicles.map((v) => ({
+                value: v.plate,
+                label: v.vehicle_type ? `${v.plate} (${v.vehicle_type})` : v.plate,
+              }))}
+              value={placa || null}
+              onChange={(val) => {
+                setPlaca(val || '');
+                const veh = lookup.vehicles.find((v) => v.plate === val);
+                setCompanyVehicleType(veh?.vehicle_type || null);
                 setErrors((p) => ({ ...p, placa: undefined, vehicle_type: undefined }));
               }}
               error={errors.placa}
               required
-              styles={{ input: { fontSize: 16, minHeight: 44, textTransform: 'uppercase' } }}
+              styles={{ input: { fontSize: 16, minHeight: 44 } }}
             />
+          ) : (
+            <Box>
+              <TextInput
+                label="Placa"
+                placeholder="Ej: ABC123"
+                value={placa}
+                maxLength={6}
+                onChange={(e) => {
+                  const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                  setPlaca(v);
+                  setManualVehicleType(null);
+                  setErrors((p) => ({ ...p, placa: undefined, vehicle_type: undefined }));
+                }}
+                error={errors.placa}
+                required
+                styles={{ input: { fontSize: 16, minHeight: 44, textTransform: 'uppercase' } }}
+              />
 
-            {normalizedPlaca.length === 6 && (
-              <Box mt="xs">
-                {detectedType === 'auto' && (
-                  <Badge color="blue" size="md">
-                    Vehículo detectado: AUTO
-                  </Badge>
-                )}
-                {detectedType === 'moto' && (
-                  <Badge color="orange" size="md">
-                    Vehículo detectado: MOTO
-                  </Badge>
-                )}
-                {showManualSelector && (
-                  <VehicleTypeSelector value={manualVehicleType} onChange={setManualVehicleType} />
-                )}
-              </Box>
-            )}
-            {errors.vehicle_type && (
-              <Text size="xs" c="red" mt={4}>
-                {errors.vehicle_type}
-              </Text>
-            )}
-          </Box>
+              {normalizedPlaca.length === 6 && (
+                <Box mt="xs">
+                  {detectedType === 'auto' && (
+                    <Badge color="blue" size="md">
+                      Vehículo detectado: AUTO
+                    </Badge>
+                  )}
+                  {detectedType === 'moto' && (
+                    <Badge color="orange" size="md">
+                      Vehículo detectado: MOTO
+                    </Badge>
+                  )}
+                  {showManualSelector && (
+                    <VehicleTypeSelector value={manualVehicleType} onChange={setManualVehicleType} />
+                  )}
+                </Box>
+              )}
+              {errors.vehicle_type && (
+                <Text size="xs" c="red" mt={4}>
+                  {errors.vehicle_type}
+                </Text>
+              )}
+            </Box>
+          )}
 
           <TextInput
             label="Fecha y hora"
