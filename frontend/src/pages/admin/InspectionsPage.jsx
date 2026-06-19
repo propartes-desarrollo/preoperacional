@@ -15,7 +15,7 @@ export function InspectionsPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
-    cedula: '', plate: '', name: '', vehicle_type: '', date_from: null, date_to: null, has_malo: '',
+    folio: '', cedula: '', plate: '', name: '', vehicle_type: '', date_from: null, date_to: null, has_malo: '',
   });
   const [activeFilters, setActiveFilters] = useState({});
   const [drawer, setDrawer] = useState({ opened: false, inspection: null });
@@ -40,6 +40,7 @@ export function InspectionsPage() {
 
   function handleSearch() {
     const params = {};
+    if (filters.folio) params.folio = filters.folio;
     if (filters.cedula) params.cedula = filters.cedula;
     if (filters.plate) params.plate = filters.plate;
     if (filters.name) params.name = filters.name;
@@ -100,6 +101,11 @@ export function InspectionsPage() {
       <Stack gap="xs" mb="md">
         <Group gap="xs" wrap="wrap">
           <TextInput
+            placeholder="Folio / N°" value={filters.folio} inputMode="numeric"
+            onChange={(e) => setFilters({ ...filters, folio: e.target.value.replace(/\D/g, '') })}
+            style={{ width: 110 }} styles={{ input: { fontSize: 14 } }}
+          />
+          <TextInput
             placeholder="Cedula" value={filters.cedula}
             onChange={(e) => setFilters({ ...filters, cedula: e.target.value })}
             style={{ width: 140 }} styles={{ input: { fontSize: 14 } }}
@@ -152,6 +158,7 @@ export function InspectionsPage() {
           <Table striped highlightOnHover withTableBorder fz="sm">
             <Table.Thead>
               <Table.Tr>
+                <SortableTh label="Folio" sortKey="id" sort={sort} onSort={onSort} />
                 <SortableTh label="Fecha" sortKey="inspection_date" sort={sort} onSort={onSort} />
                 <SortableTh label="Cédula" sortKey="cedula" sort={sort} onSort={onSort} />
                 <SortableTh label="Nombre" sortKey="name" sort={sort} onSort={onSort} />
@@ -165,6 +172,7 @@ export function InspectionsPage() {
             <Table.Tbody>
               {sorted.map((row) => (
                 <Table.Tr key={row.id}>
+                  <Table.Td fw={600}>#{row.id}</Table.Td>
                   <Table.Td>{row.inspection_date}</Table.Td>
                   <Table.Td>{row.collaborator?.cedula}</Table.Td>
                   <Table.Td>{row.collaborator?.first_name} {row.collaborator?.last_name}</Table.Td>

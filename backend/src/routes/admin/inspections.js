@@ -9,6 +9,10 @@ function buildWhereClause(query) {
   const conditions = [];
   const params = [];
 
+  if (query.folio) {
+    params.push(parseInt(query.folio, 10) || -1);
+    conditions.push(`i.id = $${params.length}`);
+  }
   if (query.cedula) {
     params.push(`%${query.cedula}%`);
     conditions.push(`c.cedula ILIKE $${params.length}`);
@@ -106,6 +110,7 @@ router.get('/export', async (req, res, next) => {
     }));
 
     sheet.columns = [
+      { header: 'Folio', key: 'folio', width: 10 },
       { header: 'Fecha', key: 'fecha', width: 14 },
       { header: 'Cedula', key: 'cedula', width: 14 },
       { header: 'Nombre', key: 'nombre', width: 18 },
@@ -124,6 +129,7 @@ router.get('/export', async (req, res, next) => {
 
     for (const row of answerRows) {
       const rowObj = {
+        folio: row.inspection_id,
         fecha: row.fecha, cedula: row.cedula, nombre: row.nombre, apellidos: row.apellidos,
         placa: row.placa, tipo: row.tipo, seccion: row.seccion, pregunta: row.pregunta,
         respuesta: RESPUESTA_LABEL[row.respuesta] || '', observaciones: row.observaciones || '',
