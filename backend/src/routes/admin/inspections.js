@@ -1,12 +1,9 @@
 import { Router } from 'express';
-import path from 'path';
-import fs from 'fs/promises';
-import { createReadStream } from 'fs';
 import ExcelJS from 'exceljs';
 import pool from '../../db.js';
+import { signedPhotoPath } from '../../utils/photoSign.js';
 
 const router = Router();
-const UPLOADS_DIR = process.env.UPLOADS_DIR || '/app/uploads';
 
 function buildWhereClause(query) {
   const conditions = [];
@@ -85,22 +82,28 @@ router.get('/export', async (req, res, next) => {
       params
     );
 
+    const APP_URL = (process.env.APP_URL || '').replace(/\/$/, '');
     const inspIds = [...new Set(answerRows.map((r) => r.inspection_id))];
     const photoMap = new Map();
     if (inspIds.length > 0) {
       const { rows: photoRows } = await pool.query(
-        `SELECT inspection_id, id FROM inspection_photos WHERE inspection_id = ANY($1)`,
+        `SELECT inspection_id, id FROM inspection_photos WHERE inspection_id = ANY($1) ORDER BY id`,
         [inspIds]
       );
       for (const p of photoRows) {
         const existing = photoMap.get(p.inspection_id) || [];
-        existing.push(`/api/v1/admin/inspections/${p.inspection_id}/photos/${p.id}`);
+        existing.push(p.id);
         photoMap.set(p.inspection_id, existing);
       }
     }
+    const maxPhotos = photoMap.size ? Math.max(...[...photoMap.values()].map((a) => a.length)) : 0;
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Inspecciones');
+
+    const photoColumns = Array.from({ length: maxPhotos }, (_, i) => ({
+      header: `Foto ${i + 1}`, key: `foto_${i + 1}`, width: 16,
+    }));
 
     sheet.columns = [
       { header: 'Fecha', key: 'fecha', width: 14 },
@@ -113,18 +116,27 @@ router.get('/export', async (req, res, next) => {
       { header: 'Pregunta', key: 'pregunta', width: 40 },
       { header: 'Respuesta', key: 'respuesta', width: 12 },
       { header: 'Observaciones', key: 'observaciones', width: 30 },
-      { header: 'Foto URLs', key: 'foto_urls', width: 60 },
+      ...photoColumns,
     ];
     sheet.getRow(1).font = { bold: true };
 
     const RESPUESTA_LABEL = { bueno: 'Bueno', malo: 'Malo', no_aplica: 'No aplica' };
 
     for (const row of answerRows) {
-      const photoUrls = (photoMap.get(row.inspection_id) || []).join(';');
-      sheet.addRow({
+      const rowObj = {
         fecha: row.fecha, cedula: row.cedula, nombre: row.nombre, apellidos: row.apellidos,
         placa: row.placa, tipo: row.tipo, seccion: row.seccion, pregunta: row.pregunta,
-        respuesta: RESPUESTA_LABEL[row.respuesta] || '', observaciones: row.observaciones || '', foto_urls: photoUrls,
+        respuesta: RESPUESTA_LABEL[row.respuesta] || '', observaciones: row.observaciones || '',
+      };
+      const photoIds = photoMap.get(row.inspection_id) || [];
+      photoIds.forEach((pid, i) => {
+        const url = `${APP_URL}${signedPhotoPath(pid)}`;
+        rowObj[`foto_${i + 1}`] = { text: `Ver foto ${i + 1}`, hyperlink: url };
+      });
+      const added = sheet.addRow(rowObj);
+      photoIds.forEach((_, i) => {
+        const cell = added.getCell(`foto_${i + 1}`);
+        cell.font = { color: { argb: 'FF1C7ED6' }, underline: true };
       });
     }
 
@@ -248,49 +260,10 @@ router.get('/:id', async (req, res, next) => {
     }
 
     const photosWithUrl = photos.map((p) => ({
-      ...p, url: `/api/v1/admin/inspections/${id}/photos/${p.id}`,
+      ...p, url: signedPhotoPath(p.id),
     }));
 
     res.json({ ...insp, sections: Object.values(sectionMap), photos: photosWithUrl });
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * @openapi
- * /admin/inspections/{id}/photos/{photoId}:
- *   get:
- *     summary: Servir foto de inspeccion
- *     tags: [admin-inspections]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Archivo de imagen
- */
-router.get('/:id/photos/:photoId', async (req, res, next) => {
-  try {
-    const inspId = parseInt(req.params.id, 10);
-    const photoId = parseInt(req.params.photoId, 10);
-    if (isNaN(inspId) || isNaN(photoId)) return res.status(400).json({ error: 'IDs invalidos', code: 400 });
-
-    const { rows: [photo] } = await pool.query(
-      `SELECT file_path, mime_type FROM inspection_photos WHERE id = $1 AND inspection_id = $2`,
-      [photoId, inspId]
-    );
-    if (!photo) return res.status(404).json({ error: 'Foto no encontrada', code: 404 });
-
-    const absolutePath = path.join(UPLOADS_DIR, photo.file_path);
-    try {
-      await fs.access(absolutePath);
-    } catch {
-      return res.status(404).json({ error: 'Archivo no encontrado en disco', code: 404 });
-    }
-
-    res.setHeader('Content-Type', photo.mime_type || 'image/jpeg');
-    res.setHeader('Cache-Control', 'private, max-age=3600');
-    createReadStream(absolutePath).pipe(res);
   } catch (err) {
     next(err);
   }

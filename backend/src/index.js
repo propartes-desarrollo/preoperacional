@@ -17,6 +17,7 @@ import photoConfigRouter from './routes/photoConfig.js';
 import inspectionStatusRouter from './routes/inspectionStatus.js';
 import inspectionsRouter from './routes/inspections.js';
 import collaboratorLookupRouter from './routes/collaboratorLookup.js';
+import inspectionPhotosRouter from './routes/inspectionPhotos.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import adminDashboardRouter from './routes/admin/dashboard.js';
 import adminCollaboratorsRouter from './routes/admin/collaborators.js';
@@ -112,6 +113,7 @@ async function bootstrap() {
   app.use('/api/v1/inspection-status', inspectionStatusRouter);
   app.use('/api/v1/inspections', inspectionsRouter);
   app.use('/api/v1/collaborator-lookup', collaboratorLookupRouter);
+  app.use('/api/v1/inspection-photos', inspectionPhotosRouter);
 
   // Auth routes
   app.use('/api/v1/auth', authRouter);
