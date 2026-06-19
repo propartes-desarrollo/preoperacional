@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Title, Group, Button, TextInput, Select, Table, Badge, ActionIcon,
   Pagination, Text, Center, Loader, Tooltip, Stack
@@ -33,6 +33,11 @@ export function InspectionsPage() {
     }
   }, [page]);
 
+  // Carga inicial y al cambiar de pagina o de filtros aplicados
+  useEffect(() => {
+    load(activeFilters);
+  }, [load, activeFilters]);
+
   function handleSearch() {
     const params = {};
     if (filters.cedula) params.cedula = filters.cedula;
@@ -42,9 +47,8 @@ export function InspectionsPage() {
     if (filters.date_from) params.date_from = filters.date_from.toISOString().substring(0, 10);
     if (filters.date_to) params.date_to = filters.date_to.toISOString().substring(0, 10);
     if (filters.has_malo === 'true') params.has_malo = 'true';
-    setActiveFilters(params);
     setPage(1);
-    load(params);
+    setActiveFilters(params);
   }
 
   async function openDetail(row) {
@@ -186,7 +190,7 @@ export function InspectionsPage() {
           </Table>
 
           {data.data.length === 0 && (
-            <Text c="dimmed" ta="center" py="xl">No se encontraron inspecciones. Usa los filtros y presiona Buscar.</Text>
+            <Text c="dimmed" ta="center" py="xl">No se encontraron inspecciones para los filtros aplicados.</Text>
           )}
 
           {totalPages > 1 && (
