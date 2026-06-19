@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Title, Tabs, Table, Badge, ActionIcon, Button, Modal, TextInput, Switch, Group, Stack, Center, Loader, Text } from '@mantine/core';
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
+import { Title, Tabs, Table, Badge, ActionIcon, Button, Modal, TextInput, Switch, Group, Stack, Center, Loader, Text, Tooltip } from '@mantine/core';
+import { IconPlus, IconEdit, IconTrash, IconToggleRight, IconToggleLeft } from '@tabler/icons-react';
 import { getPhotoConfigs, createPhotoConfig, updatePhotoConfig, deletePhotoConfig } from '../../api/adminApi.js';
 import { notifications } from '@mantine/notifications';
 import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
@@ -57,13 +57,24 @@ export function PhotoConfigsPage() {
     }
   }
 
-  async function handleDelete(cfg) {
-    if (!window.confirm(`Desactivar "${cfg.label}"?`)) return;
+  async function toggleConfig(cfg) {
     try {
-      await deletePhotoConfig(cfg.id);
+      await updatePhotoConfig(cfg.id, { is_active: !cfg.is_active });
+      notifications.show({ message: cfg.is_active ? 'Configuración desactivada.' : 'Configuración reactivada.', color: 'green' });
       load();
     } catch (err) {
       notifications.show({ message: err.response?.data?.error || 'Error.', color: 'red' });
+    }
+  }
+
+  async function hardDeleteConfig(cfg) {
+    if (!window.confirm(`Eliminar permanentemente "${cfg.label}"? Esta accion no se puede deshacer.`)) return;
+    try {
+      await deletePhotoConfig(cfg.id, true);
+      notifications.show({ message: 'Configuración eliminada permanentemente.', color: 'green' });
+      load();
+    } catch (err) {
+      notifications.show({ message: err.response?.data?.error || 'No se pudo eliminar: puede tener fotos asociadas.', color: 'red' });
     }
   }
 
@@ -106,9 +117,18 @@ export function PhotoConfigsPage() {
                   <Table.Td><Badge color={cfg.is_required ? 'blue' : 'gray'} variant="light" size="sm">{cfg.is_required ? 'Sí' : 'No'}</Badge></Table.Td>
                   <Table.Td><Badge color={cfg.is_active ? 'green' : 'gray'} variant="light" size="sm">{cfg.is_active ? 'Activa' : 'Inactiva'}</Badge></Table.Td>
                   <Table.Td>
-                    <Group gap={4}>
+                    <Group gap={4} wrap="nowrap">
                       <ActionIcon variant="light" size="sm" onClick={() => openEdit(cfg)}><IconEdit size={14} /></ActionIcon>
-                      <ActionIcon variant="light" size="sm" color="red" onClick={() => handleDelete(cfg)}><IconTrash size={14} /></ActionIcon>
+                      <Tooltip label={cfg.is_active ? 'Desactivar' : 'Reactivar'}>
+                        <ActionIcon variant="light" size="sm" color={cfg.is_active ? 'orange' : 'green'} onClick={() => toggleConfig(cfg)}>
+                          {cfg.is_active ? <IconToggleRight size={14} /> : <IconToggleLeft size={14} />}
+                        </ActionIcon>
+                      </Tooltip>
+                      {!cfg.is_active && (
+                        <Tooltip label="Eliminar permanentemente">
+                          <ActionIcon variant="light" size="sm" color="red" onClick={() => hardDeleteConfig(cfg)}><IconTrash size={14} /></ActionIcon>
+                        </Tooltip>
+                      )}
                     </Group>
                   </Table.Td>
                 </Table.Tr>

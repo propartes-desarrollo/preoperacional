@@ -10,10 +10,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifestFilename: 'manifest.json',
-      includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Preoperacional Propartes',
-        short_name: 'Preoperacional',
+        short_name: 'Preoperacional Propartes',
         description: 'Inspeccion preoperacional de vehiculos',
         theme_color: '#1c7ed6',
         background_color: '#ffffff',

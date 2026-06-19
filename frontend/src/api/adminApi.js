@@ -54,7 +54,8 @@ export const reorderQuestions = (section_id, question_ids) =>
 export const getPhotoConfigs = () => client.get('/admin/photo-configs').then((r) => r.data);
 export const createPhotoConfig = (data) => client.post('/admin/photo-configs', data).then((r) => r.data);
 export const updatePhotoConfig = (id, data) => client.put(`/admin/photo-configs/${id}`, data).then((r) => r.data);
-export const deletePhotoConfig = (id) => client.delete(`/admin/photo-configs/${id}`).then((r) => r.data);
+export const deletePhotoConfig = (id, hard = false) =>
+  client.delete(`/admin/photo-configs/${id}`, { params: hard ? { hard: 'true' } : {} }).then((r) => r.data);
 
 // Admin users
 export const getAdminUsers = () => client.get('/admin/users').then((r) => r.data);

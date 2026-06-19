@@ -117,7 +117,18 @@ router.delete('/:id', async (req, res, next) => {
     const { rows: [r] } = await pool.query('SELECT id FROM photo_configs WHERE id = $1', [req.params.id]);
     if (!r) return res.status(404).json({ error: 'No encontrado', code: 404 });
 
-    await pool.query('UPDATE photo_configs SET is_active = false WHERE id = $1', [req.params.id]);
+    if (req.query.hard === 'true') {
+      const { rows: [{ count }] } = await pool.query(
+        'SELECT COUNT(*)::int AS count FROM inspection_photos WHERE photo_config_id = $1',
+        [req.params.id]
+      );
+      if (count > 0) {
+        return res.status(409).json({ error: 'No se puede eliminar: tiene fotos asociadas', code: 409 });
+      }
+      await pool.query('DELETE FROM photo_configs WHERE id = $1', [req.params.id]);
+    } else {
+      await pool.query('UPDATE photo_configs SET is_active = false WHERE id = $1', [req.params.id]);
+    }
     res.status(204).send();
   } catch (err) {
     next(err);
