@@ -34,8 +34,9 @@ async function runDailyReminder() {
   const { rows: collaborators } = await pool.query(
     `SELECT c.id, c.first_name, c.last_name, c.phone
      FROM collaborators c
+     JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
      WHERE c.is_active = true
-       AND c.inspection_frequency = 'daily'
+       AND ct.receives_reminder = true
        AND c.phone IS NOT NULL
      ORDER BY c.last_name, c.first_name`
   );

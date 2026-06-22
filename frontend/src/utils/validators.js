@@ -14,7 +14,6 @@ export function validateApellidos(apellidos) {
   if (!apellidos || !apellidos.trim()) return 'Los apellidos son requeridos';
   const words = apellidos.trim().split(/\s+/);
   if (words.length < 2) return 'Ingresa al menos dos apellidos';
-  if (words.some((w) => w.length < 3)) return 'Cada apellido debe tener al menos 3 letras';
   return null;
 }
 

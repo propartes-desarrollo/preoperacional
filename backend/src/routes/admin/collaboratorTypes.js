@@ -18,7 +18,7 @@ const router = Router();
 router.get('/', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT t.id, t.name, t.uses_company_vehicles, t.is_active, t.display_order,
+      `SELECT t.id, t.name, t.uses_company_vehicles, t.receives_reminder, t.is_active, t.display_order,
               (SELECT COUNT(*)::int FROM collaborators c WHERE c.collaborator_type_id = t.id) AS collaborators_count
        FROM collaborator_types t
        ORDER BY t.display_order, t.name`
@@ -43,7 +43,7 @@ router.get('/', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
   try {
-    const { name, uses_company_vehicles, display_order } = req.body;
+    const { name, uses_company_vehicles, receives_reminder, display_order } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'El nombre es requerido', code: 400 });
     }
@@ -53,9 +53,9 @@ router.post('/', async (req, res, next) => {
     );
 
     const { rows } = await pool.query(
-      `INSERT INTO collaborator_types (name, uses_company_vehicles, display_order)
-       VALUES ($1, $2, $3) RETURNING *`,
-      [name.trim(), uses_company_vehicles ?? false, display_order ?? max_order + 1]
+      `INSERT INTO collaborator_types (name, uses_company_vehicles, receives_reminder, display_order)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name.trim(), uses_company_vehicles ?? false, receives_reminder ?? false, display_order ?? max_order + 1]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -80,15 +80,16 @@ router.post('/', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
   try {
-    const { name, uses_company_vehicles, is_active, display_order } = req.body;
+    const { name, uses_company_vehicles, receives_reminder, is_active, display_order } = req.body;
     const { rows } = await pool.query(
       `UPDATE collaborator_types SET
         name = COALESCE($1, name),
         uses_company_vehicles = COALESCE($2, uses_company_vehicles),
-        is_active = COALESCE($3, is_active),
-        display_order = COALESCE($4, display_order)
-       WHERE id = $5 RETURNING *`,
-      [name?.trim() ?? null, uses_company_vehicles, is_active, display_order, req.params.id]
+        receives_reminder = COALESCE($3, receives_reminder),
+        is_active = COALESCE($4, is_active),
+        display_order = COALESCE($5, display_order)
+       WHERE id = $6 RETURNING *`,
+      [name?.trim() ?? null, uses_company_vehicles, receives_reminder, is_active, display_order, req.params.id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'No encontrado', code: 404 });
     res.json(rows[0]);

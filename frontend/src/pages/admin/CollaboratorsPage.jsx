@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Title, Group, Button, TextInput, Select, Table, Badge, ActionIcon,
-  Pagination, Text, Center, Loader, Alert, Tooltip, Switch
+  Pagination, Text, Center, Loader, Alert, Tooltip, Switch, Modal, Stack
 } from '@mantine/core';
 import { IconSearch, IconEdit, IconTrash, IconUpload, IconPlus, IconUserOff, IconUserCheck, IconDownload } from '@tabler/icons-react';
 import { getCollaborators, deleteCollaborator, updateCollaborator, exportCollaborators } from '../../api/adminApi.js';
@@ -20,6 +20,8 @@ export function CollaboratorsPage() {
   const [formModal, setFormModal] = useState({ opened: false, collaborator: null });
   const [importModal, setImportModal] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ opened: false, collaborator: null });
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,14 +71,23 @@ export function CollaboratorsPage() {
     }
   }
 
-  async function handleDelete(col) {
-    if (!window.confirm(`Desactivar a ${col.first_name} ${col.last_name}?`)) return;
+  async function confirmDelete() {
+    const col = deleteModal.collaborator;
+    if (!col) return;
+    setDeleting(true);
     try {
-      await deleteCollaborator(col.id, false);
+      await deleteCollaborator(col.id, true);
+      setDeleteModal({ opened: false, collaborator: null });
       load();
-      notifications.show({ message: 'Colaborador desactivado.', color: 'green' });
+      notifications.show({ message: 'Colaborador eliminado.', color: 'green' });
     } catch (err) {
-      notifications.show({ message: err.response?.data?.error || 'Error al eliminar.', color: 'red' });
+      notifications.show({
+        message: err.response?.data?.error || 'No se pudo eliminar el colaborador.',
+        color: 'red',
+        autoClose: 7000,
+      });
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -186,8 +197,8 @@ export function CollaboratorsPage() {
                           {col.is_active ? <IconUserOff size={16} /> : <IconUserCheck size={16} />}
                         </ActionIcon>
                       </Tooltip>
-                      <Tooltip label="Eliminar (soft delete)">
-                        <ActionIcon variant="light" color="red" onClick={() => handleDelete(col)}>
+                      <Tooltip label="Eliminar colaborador">
+                        <ActionIcon variant="light" color="red" onClick={() => setDeleteModal({ opened: true, collaborator: col })}>
                           <IconTrash size={16} />
                         </ActionIcon>
                       </Tooltip>
@@ -217,6 +228,33 @@ export function CollaboratorsPage() {
         onSaved={load}
       />
       <ImportCsvModal opened={importModal} onClose={() => setImportModal(false)} onImported={load} />
+
+      <Modal
+        opened={deleteModal.opened}
+        onClose={() => setDeleteModal({ opened: false, collaborator: null })}
+        title="Eliminar colaborador"
+        size="sm"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            ¿Seguro que deseas eliminar a{' '}
+            <strong>{deleteModal.collaborator?.first_name} {deleteModal.collaborator?.last_name}</strong>{' '}
+            (cédula {deleteModal.collaborator?.cedula})? Esta acción no se puede deshacer.
+          </Text>
+          <Text size="xs" c="dimmed">
+            Si el colaborador tiene inspecciones registradas, no podrá eliminarse; en ese caso usa "Desactivar".
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setDeleteModal({ opened: false, collaborator: null })}>
+              Cancelar
+            </Button>
+            <Button color="red" loading={deleting} onClick={confirmDelete}>
+              Eliminar
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </div>
   );
 }

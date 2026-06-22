@@ -28,7 +28,6 @@ export const apellidosSchema = z
   .min(2)
   .max(100)
   .refine((v) => v.split(/\s+/).length >= 2, 'Ingrese al menos dos apellidos')
-  .refine((v) => v.split(/\s+/).every((w) => w.length >= 3), 'Cada apellido debe tener al menos 3 letras')
   .transform((v) => v.toUpperCase());
 
 export const inspectionSubmitSchema = z.object({
