@@ -41,7 +41,8 @@ export async function getInactivityAlerts(threshold) {
             ) AS last_inspection_date
      FROM collaborators c
      JOIN collaborator_vehicles cv ON cv.collaborator_id = c.id
-     WHERE c.is_active = true AND c.inspection_frequency = 'daily'
+     JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
+     WHERE c.is_active = true AND ct.requires_inspection = true
      GROUP BY c.id, c.cedula, c.first_name, c.last_name`
   );
 
@@ -78,7 +79,8 @@ export async function getPhotoPendingAlerts() {
             cv.plate
      FROM collaborators c
      JOIN collaborator_vehicles cv ON cv.collaborator_id = c.id
-     WHERE c.is_active = true AND c.inspection_frequency = 'daily'
+     JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
+     WHERE c.is_active = true AND ct.requires_inspection = true
        AND NOT EXISTS (
          SELECT 1 FROM inspections i
          JOIN inspection_photos ip ON ip.inspection_id = i.id

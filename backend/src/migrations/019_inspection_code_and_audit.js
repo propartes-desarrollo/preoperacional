@@ -1,10 +1,4 @@
-const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin 0,O,1,I,L para legibilidad
-
-function genCode() {
-  let s = '';
-  for (let i = 0; i < 6; i++) s += CHARSET[Math.floor(Math.random() * CHARSET.length)];
-  return s;
-}
+import { genInspectionCode } from '../utils/inspectionCode.js';
 
 export const up = async (client) => {
   // 1. ID publico aleatorio para inspecciones
@@ -18,7 +12,7 @@ export const up = async (client) => {
   const { rows: pending } = await client.query(`SELECT id FROM inspections WHERE public_code IS NULL`);
   for (const r of pending) {
     let code;
-    do { code = genCode(); } while (used.has(code));
+    do { code = genInspectionCode(); } while (used.has(code));
     used.add(code);
     await client.query(`UPDATE inspections SET public_code = $1 WHERE id = $2`, [code, r.id]);
   }

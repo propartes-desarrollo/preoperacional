@@ -43,6 +43,14 @@ export function DashboardPage() {
         {data.is_photo_day && <Badge ml="xs" color="orange" variant="light">Día de fotos</Badge>}
       </Text>
 
+      {data.untyped_active > 0 && (
+        <Alert color="orange" title="Colaboradores sin tipo asignado" mb="md">
+          Hay <strong>{data.untyped_active}</strong> colaborador(es) activo(s) sin tipo de usuario.
+          No reciben recordatorio, no se vigilan en alertas de inactividad ni aparecen en "faltan hoy".
+          Asígnales un tipo en <strong>Colaboradores</strong> (filtro "Sin tipo").
+        </Alert>
+      )}
+
       <Grid mb="md">
         <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
           <StatCard

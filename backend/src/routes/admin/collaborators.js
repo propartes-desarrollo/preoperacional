@@ -185,6 +185,9 @@ router.get('/', async (req, res, next) => {
       params.push(req.query.frequency);
       conditions.push(`c.inspection_frequency = $${params.length}`);
     }
+    if (req.query.untyped === 'true') {
+      conditions.push('c.collaborator_type_id IS NULL');
+    }
 
     const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 

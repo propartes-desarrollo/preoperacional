@@ -10,7 +10,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useSortableData, SortableTh } from '../../components/admin/SortableTable.jsx';
 
-const EMPTY_FORM = { name: '', uses_company_vehicles: false, receives_reminder: false, is_active: true };
+const EMPTY_FORM = { name: '', uses_company_vehicles: false, requires_inspection: false, is_active: true };
 
 export function CollaboratorTypesPage() {
   const [types, setTypes] = useState([]);
@@ -39,7 +39,7 @@ export function CollaboratorTypesPage() {
   }
 
   function openEdit(t) {
-    setForm({ name: t.name, uses_company_vehicles: t.uses_company_vehicles, receives_reminder: t.receives_reminder, is_active: t.is_active });
+    setForm({ name: t.name, uses_company_vehicles: t.uses_company_vehicles, requires_inspection: t.requires_inspection, is_active: t.is_active });
     setModal({ opened: true, type: t });
   }
 
@@ -97,7 +97,7 @@ export function CollaboratorTypesPage() {
           <Table.Tr>
             <SortableTh label="Nombre" sortKey="name" sort={sort} onSort={onSort} />
             <SortableTh label="Usa vehículos de empresa" sortKey="uses_company_vehicles" sort={sort} onSort={onSort} />
-            <SortableTh label="Recordatorio WhatsApp" sortKey="receives_reminder" sort={sort} onSort={onSort} />
+            <SortableTh label="Requiere inspección" sortKey="requires_inspection" sort={sort} onSort={onSort} />
             <SortableTh label="Colaboradores" sortKey="collaborators_count" sort={sort} onSort={onSort} />
             <SortableTh label="Estado" sortKey="is_active" sort={sort} onSort={onSort} />
             <Table.Th></Table.Th>
@@ -113,8 +113,8 @@ export function CollaboratorTypesPage() {
                 </Badge>
               </Table.Td>
               <Table.Td>
-                <Badge color={t.receives_reminder ? 'teal' : 'gray'} variant="light" size="sm">
-                  {t.receives_reminder ? 'Sí' : 'No'}
+                <Badge color={t.requires_inspection ? 'teal' : 'gray'} variant="light" size="sm">
+                  {t.requires_inspection ? 'Sí' : 'No'}
                 </Badge>
               </Table.Td>
               <Table.Td>{t.collaborators_count}</Table.Td>
@@ -162,10 +162,10 @@ export function CollaboratorTypesPage() {
             onChange={(e) => setForm({ ...form, uses_company_vehicles: e.currentTarget.checked })}
           />
           <Switch
-            label="Recibe recordatorio WhatsApp"
-            description="Los colaboradores de este tipo reciben el mensaje diario"
-            checked={form.receives_reminder}
-            onChange={(e) => setForm({ ...form, receives_reminder: e.currentTarget.checked })}
+            label="Requiere inspección diaria"
+            description="Los colaboradores de este tipo reciben el recordatorio WhatsApp, se vigilan en alertas de inactividad y aparecen en 'faltan hoy'"
+            checked={form.requires_inspection}
+            onChange={(e) => setForm({ ...form, requires_inspection: e.currentTarget.checked })}
           />
           <Switch
             label="Activo"

@@ -1,6 +1,6 @@
 {
   "name": "preoperacional-propartes-backend",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Backend API para el sistema preoperacional de Propartes",
   "type": "module",
   "main": "src/index.js",

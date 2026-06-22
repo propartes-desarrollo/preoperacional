@@ -31,6 +31,7 @@ router.get('/', async (req, res, next) => {
       { rows: activeFreq },
       { rows: missing },
       { rows: last7 },
+      { rows: [{ untyped_active }] },
     ] = await Promise.all([
       pool.query(
         `SELECT c.inspection_frequency, COUNT(*)::int AS count
@@ -50,8 +51,9 @@ router.get('/', async (req, res, next) => {
                 c.first_name || ' ' || c.last_name AS name,
                 c.inspection_frequency
          FROM collaborators c
+         JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
          WHERE c.is_active = true
-           AND c.inspection_frequency = 'daily'
+           AND ct.requires_inspection = true
            AND NOT EXISTS (
              SELECT 1 FROM inspections i
              WHERE i.collaborator_id = c.id AND i.inspection_date = $1
@@ -64,6 +66,10 @@ router.get('/', async (req, res, next) => {
          FROM inspections WHERE inspection_date BETWEEN $1 AND $2
          GROUP BY inspection_date ORDER BY inspection_date`,
         [addDaysToDateStr(today, -6), today]
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS untyped_active
+         FROM collaborators WHERE is_active = true AND collaborator_type_id IS NULL`
       ),
     ]);
 
@@ -84,6 +90,7 @@ router.get('/', async (req, res, next) => {
       active_collaborators_eventual: activeMap.eventual ?? 0,
       missing_today: missing,
       inspections_last_7_days: last7,
+      untyped_active,
     });
   } catch (err) {
     next(err);

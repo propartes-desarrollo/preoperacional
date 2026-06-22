@@ -16,6 +16,7 @@ export function CollaboratorsPage() {
   const [search, setSearch] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState('');
   const [frequencyFilter, setFrequencyFilter] = useState('');
+  const [untypedFilter, setUntypedFilter] = useState('');
   const [page, setPage] = useState(1);
   const [formModal, setFormModal] = useState({ opened: false, collaborator: null });
   const [importModal, setImportModal] = useState(false);
@@ -30,6 +31,7 @@ export function CollaboratorsPage() {
       if (search) params.search = search;
       if (isActiveFilter !== '') params.is_active = isActiveFilter;
       if (frequencyFilter !== '') params.frequency = frequencyFilter;
+      if (untypedFilter === 'untyped') params.untyped = 'true';
       const result = await getCollaborators(params);
       setData(result);
     } catch {
@@ -37,7 +39,7 @@ export function CollaboratorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, isActiveFilter, frequencyFilter]);
+  }, [page, search, isActiveFilter, frequencyFilter, untypedFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -127,6 +129,12 @@ export function CollaboratorsPage() {
           data={[{ value: 'daily', label: 'Diario' }, { value: 'eventual', label: 'Eventual' }]}
           value={frequencyFilter || null} onChange={(v) => { setFrequencyFilter(v || ''); setPage(1); }}
           clearable style={{ width: 140 }}
+        />
+        <Select
+          placeholder="Tipo"
+          data={[{ value: 'untyped', label: 'Sin tipo' }]}
+          value={untypedFilter || null} onChange={(v) => { setUntypedFilter(v || ''); setPage(1); }}
+          clearable style={{ width: 130 }}
         />
       </Group>
 

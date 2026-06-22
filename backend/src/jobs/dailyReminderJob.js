@@ -36,7 +36,7 @@ async function runDailyReminder() {
      FROM collaborators c
      JOIN collaborator_types ct ON ct.id = c.collaborator_type_id
      WHERE c.is_active = true
-       AND ct.receives_reminder = true
+       AND ct.requires_inspection = true
        AND c.phone IS NOT NULL
      ORDER BY c.last_name, c.first_name`
   );
