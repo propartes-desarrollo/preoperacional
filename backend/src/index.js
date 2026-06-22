@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { readFileSync } from 'fs';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -38,6 +39,7 @@ import { swaggerServe, swaggerSetup, swaggerSpec } from './swagger.js';
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const APP_VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version;
 
 async function waitForDatabase() {
   const start = Date.now();
@@ -150,7 +152,7 @@ async function bootstrap() {
   startInactivityAlertJob();
 
   app.listen(PORT, () => {
-    logger.info({ component: 'backend' }, `Puerto: ${PORT} | Entorno: ${NODE_ENV} | Version: ${process.env.npm_package_version || '1.0.0'}`);
+    logger.info({ component: 'backend' }, `Puerto: ${PORT} | Entorno: ${NODE_ENV} | Version: ${APP_VERSION}`);
   });
 }
 
