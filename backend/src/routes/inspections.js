@@ -10,6 +10,7 @@ import { todayInBogota } from '../utils/dateHelpers.js';
 import { getPhotoStatus } from '../services/photoBlockService.js';
 import { findOrCreateCollaborator, ensureVehicleAssociation } from '../services/collaboratorService.js';
 import { extractExif } from '../services/exifService.js';
+import { generateUniqueCode } from '../utils/inspectionCode.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
@@ -193,10 +194,11 @@ router.post('/', upload.any(), async (req, res, next) => {
       }
 
       // Insert inspection
+      const publicCode = await generateUniqueCode(client);
       const { rows: inspRows } = await client.query(
-        `INSERT INTO inspections (collaborator_id, plate, vehicle_type, inspection_date)
-         VALUES ($1, $2, $3, $4) RETURNING id`,
-        [collaboratorId, plate, vehicle_type, today]
+        `INSERT INTO inspections (collaborator_id, plate, vehicle_type, inspection_date, public_code)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [collaboratorId, plate, vehicle_type, today, publicCode]
       );
       const inspectionId = inspRows[0].id;
 

@@ -1,17 +1,21 @@
 import { Router } from 'express';
+import path from 'path';
+import fs from 'fs/promises';
 import ExcelJS from 'exceljs';
 import pool from '../../db.js';
 import { signedPhotoPath } from '../../utils/photoSign.js';
+import logger from '../../utils/logger.js';
 
 const router = Router();
+const UPLOADS_DIR = process.env.UPLOADS_DIR || '/app/uploads';
 
 function buildWhereClause(query) {
   const conditions = [];
   const params = [];
 
-  if (query.folio) {
-    params.push(parseInt(query.folio, 10) || -1);
-    conditions.push(`i.id = $${params.length}`);
+  if (query.code) {
+    params.push(`%${query.code.toUpperCase()}%`);
+    conditions.push(`i.public_code ILIKE $${params.length}`);
   }
   if (query.cedula) {
     params.push(`%${query.cedula}%`);
@@ -75,7 +79,7 @@ router.get('/export', async (req, res, next) => {
         i.plate AS placa, i.vehicle_type AS tipo,
         s.name AS seccion, q.text AS pregunta,
         ia.answer AS respuesta, ia.observations AS observaciones,
-        i.id AS inspection_id
+        i.id AS inspection_id, i.public_code AS codigo
        FROM inspection_answers ia
        JOIN inspections i ON i.id = ia.inspection_id
        JOIN collaborators c ON c.id = i.collaborator_id
@@ -110,7 +114,7 @@ router.get('/export', async (req, res, next) => {
     }));
 
     sheet.columns = [
-      { header: 'Folio', key: 'folio', width: 10 },
+      { header: 'ID', key: 'codigo', width: 10 },
       { header: 'Fecha', key: 'fecha', width: 14 },
       { header: 'Cedula', key: 'cedula', width: 14 },
       { header: 'Nombre', key: 'nombre', width: 18 },
@@ -129,7 +133,7 @@ router.get('/export', async (req, res, next) => {
 
     for (const row of answerRows) {
       const rowObj = {
-        folio: row.inspection_id,
+        codigo: row.codigo,
         fecha: row.fecha, cedula: row.cedula, nombre: row.nombre, apellidos: row.apellidos,
         placa: row.placa, tipo: row.tipo, seccion: row.seccion, pregunta: row.pregunta,
         respuesta: RESPUESTA_LABEL[row.respuesta] || '', observaciones: row.observaciones || '',
@@ -180,7 +184,7 @@ router.get('/', async (req, res, next) => {
       pool.query(`SELECT COUNT(*)::int AS total FROM inspections i JOIN collaborators c ON c.id = i.collaborator_id ${where}`, params),
       pool.query(
         `SELECT
-          i.id, to_char(i.inspection_date, 'YYYY-MM-DD') AS inspection_date,
+          i.id, i.public_code, to_char(i.inspection_date, 'YYYY-MM-DD') AS inspection_date,
           i.created_at, i.plate, i.vehicle_type,
           json_build_object('id', c.id, 'cedula', c.cedula, 'first_name', c.first_name, 'last_name', c.last_name) AS collaborator,
           (SELECT json_build_object(
@@ -200,6 +204,104 @@ router.get('/', async (req, res, next) => {
     res.json({ data, total, page, limit });
   } catch (err) {
     next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /admin/inspections/deletions:
+ *   get:
+ *     summary: Historial inmutable de inspecciones eliminadas
+ *     tags: [admin-inspections]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de eliminaciones
+ */
+router.get('/deletions', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, inspection_public_code, collaborator_cedula, collaborator_name,
+              plate, to_char(inspection_date, 'YYYY-MM-DD') AS inspection_date,
+              deleted_by_email, deleted_by_name, reason,
+              to_char(deleted_at AT TIME ZONE 'America/Bogota', 'YYYY-MM-DD HH24:MI') AS deleted_at
+       FROM inspection_deletions
+       ORDER BY deleted_at DESC
+       LIMIT 500`
+    );
+    res.json({ deletions: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /admin/inspections/{id}:
+ *   delete:
+ *     summary: Eliminar inspeccion (registra auditoria inmutable)
+ *     tags: [admin-inspections]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: Eliminada
+ */
+router.delete('/:id', async (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return res.status(400).json({ error: 'ID invalido', code: 400 });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows: [insp] } = await client.query(
+      `SELECT i.id, i.public_code, i.plate, to_char(i.inspection_date, 'YYYY-MM-DD') AS inspection_date,
+              c.cedula, c.first_name || ' ' || c.last_name AS name
+       FROM inspections i JOIN collaborators c ON c.id = i.collaborator_id WHERE i.id = $1`,
+      [id]
+    );
+    if (!insp) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Inspeccion no encontrada', code: 404 });
+    }
+
+    const { rows: photos } = await client.query(
+      'SELECT file_path FROM inspection_photos WHERE inspection_id = $1',
+      [id]
+    );
+
+    await client.query(
+      `INSERT INTO inspection_deletions
+        (inspection_public_code, inspection_id, collaborator_cedula, collaborator_name, plate, inspection_date,
+         deleted_by_admin_id, deleted_by_email, deleted_by_name, reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        insp.public_code, insp.id, insp.cedula, insp.name, insp.plate, insp.inspection_date,
+        req.user.id, req.user.email, req.user.name, (req.body?.reason || '').trim() || null,
+      ]
+    );
+
+    // Elimina la inspeccion (cascada borra respuestas y registros de fotos)
+    await client.query('DELETE FROM inspections WHERE id = $1', [id]);
+    await client.query('COMMIT');
+
+    // Borra los archivos de foto del disco (best-effort, fuera de la transaccion)
+    for (const p of photos) {
+      await fs.unlink(path.join(UPLOADS_DIR, p.file_path)).catch(() => {});
+    }
+
+    logger.info(
+      { component: 'inspection', id, code: insp.public_code, by: req.user.email },
+      'Inspeccion eliminada por administrador.'
+    );
+    res.status(204).send();
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally {
+    client.release();
   }
 });
 
@@ -226,7 +328,7 @@ router.get('/:id', async (req, res, next) => {
     if (isNaN(id)) return next();
 
     const { rows: [insp] } = await pool.query(
-      `SELECT i.id, to_char(i.inspection_date, 'YYYY-MM-DD') AS inspection_date,
+      `SELECT i.id, i.public_code, to_char(i.inspection_date, 'YYYY-MM-DD') AS inspection_date,
               i.created_at, i.plate, i.vehicle_type,
               json_build_object('id', c.id, 'cedula', c.cedula, 'first_name', c.first_name, 'last_name', c.last_name) AS collaborator
        FROM inspections i JOIN collaborators c ON c.id = i.collaborator_id WHERE i.id = $1`,

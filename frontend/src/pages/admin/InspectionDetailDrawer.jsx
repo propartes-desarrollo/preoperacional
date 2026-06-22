@@ -9,15 +9,15 @@ function AnswerBadge({ answer }) {
 export function InspectionDetailDrawer({ opened, onClose, inspection }) {
   if (!inspection) return null;
 
-  const { id, collaborator, inspection_date, plate, vehicle_type, sections = [], photos = [] } = inspection;
+  const { public_code, collaborator, inspection_date, plate, vehicle_type, sections = [], photos = [] } = inspection;
 
   return (
     <Drawer opened={opened} onClose={onClose} title="Detalle de inspección" position="right" size="lg">
       <Stack gap="md">
         <Group>
           <div>
-            <Text size="xs" c="dimmed">Folio</Text>
-            <Text fw={700}>#{id}</Text>
+            <Text size="xs" c="dimmed">ID</Text>
+            <Text fw={700}>{public_code}</Text>
           </div>
           <div>
             <Text size="xs" c="dimmed">Colaborador</Text>

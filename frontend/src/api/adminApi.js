@@ -80,6 +80,10 @@ export const getInspections = (params) => client.get('/admin/inspections', { par
 export const getInspectionDetail = (id) => client.get(`/admin/inspections/${id}`).then((r) => r.data);
 export const exportInspections = (params) =>
   client.get('/admin/inspections/export', { params, responseType: 'blob' }).then((r) => r.data);
+export const deleteInspection = (id, reason) =>
+  client.delete(`/admin/inspections/${id}`, { data: { reason } }).then((r) => r.data);
+export const getInspectionDeletions = () =>
+  client.get('/admin/inspections/deletions').then((r) => r.data);
 
 // Alerts
 export const getAlerts = () => client.get('/admin/alerts').then((r) => r.data);
