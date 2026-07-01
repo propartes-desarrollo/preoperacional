@@ -136,10 +136,6 @@ En produccion: frontend como build estatico via Nginx, backend sin puertos expue
 0 4 * * * find /backups -name "*.sql" -mtime +30 -delete
 ```
 
-## API
-
-Documentacion interactiva Swagger UI: http://localhost:3006/api/v1/docs
-
 ## Mantenimiento
 
 - **Fotos**: eliminadas automaticamente a los 90 dias (job a las 2:00 AM hora Bogota)
@@ -159,6 +155,3 @@ Documentacion interactiva Swagger UI: http://localhost:3006/api/v1/docs
 
 **Backend no arranca (modulo no encontrado)**: reconstruir imagen con `docker-compose build backend_node`
 
-## Estructura del proyecto
-
-Ver [CLAUDE.md](CLAUDE.md) para la arquitectura detallada, endpoints, reglas de negocio y convenciones de codigo.
